@@ -1,0 +1,43 @@
+ INFO  Accepting connections at http://localhost:3001
+ HTTP  04.08.2026 16:40:00 ::1 GET /
+ HTTP  04.08.2026 16:40:00 ::1 Returned 200 in 46 ms
+ HTTP  04.08.2026 16:40:00 ::1 GET /
+ HTTP  04.08.2026 16:40:00 ::1 Returned 200 in 1 ms
+ HTTP  04.08.2026 16:40:23 ::1 GET /
+ HTTP  04.08.2026 16:40:23 ::1 Returned 200 in 4 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/media/0c89a48fa5027cee-s.p.2cyn07wtgehh0.woff2
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/382qs33b4v51f.css
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/media/83afe278b6a6bb3c-s.p.2bn3s6zvc0dyp.woff2
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 3 ms
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 2 ms
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 3 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/3o_26gh678duo.js
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 2 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/2kqrbujyxigm8.js
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/3rxl-jt3pdxgx.js
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 1 ms
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 2 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/3vvp336jo20up.js
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/media/1bffadaabf893a1e-s.3-6t-g6q0vh0a.woff2
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/media/28868e710e86be81-s.2eksvhm1z0jwa.woff2
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 1 ms
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 2 ms
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 2 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/turbopack-2i50fp_1inurm.js
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 1 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/0vey22gcqqlng.js
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 1 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/14mrh2-p_w84d.js
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/01jx7d9-532uu.js
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 1 ms
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 1 ms
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/2bm1n5_mmka9v.js
+ HTTP  04.08.2026 16:40:24 ::1 GET /_next/static/chunks/0s3qincih3rbo.js
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 2 ms
+ HTTP  04.08.2026 16:40:24 ::1 Returned 200 in 3 ms
+ HTTP  04.08.2026 16:40:28 ::1 GET /icon.svg?icon.0i6p2plynw4_1.svg
+ HTTP  04.08.2026 16:40:28 ::1 Returned 200 in 2 ms
+ HTTP  04.08.2026 16:40:28 ::1 GET /favicon.ico
+ HTTP  04.08.2026 16:40:28 ::1 Returned 404 in 2 ms
+ HTTP  04.08.2026 16:40:28 ::1 GET /_next/static/chunks/2d0gylx3_gefl.js
+ HTTP  04.08.2026 16:40:28 ::1 Returned 200 in 2 ms
