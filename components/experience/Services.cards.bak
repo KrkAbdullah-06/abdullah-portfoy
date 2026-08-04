@@ -1,0 +1,198 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+
+// Hizmetler — havalı KART IZGARASI. Scroll'da kartlar sırayla belirir; üstüne
+// gelince kart kalkar, o hizmetin renginde kenar + ışıma (glow) belirir, ikon
+// ve ok canlanır. 6 hizmet: 3D, CNC, Video, Sosyal Medya, Web, Mobil Uygulama.
+
+function Icon({ name, size = 26 }: { name: string; size?: number }) {
+  const c = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.5, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  switch (name) {
+    case "cube":
+      return (<svg {...c}><path d="M12 2 3 7v10l9 5 9-5V7z" /><path d="M3 7l9 5 9-5" /><path d="M12 12v10" /></svg>);
+    case "cnc":
+      return (<svg {...c}><rect x="3" y="4" width="18" height="4" rx="1" /><path d="M6 8v3M18 8v3M12 8v6" /><path d="M9 14h6l-1.6 4h-2.8z" /></svg>);
+    case "film":
+      return (<svg {...c}><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M7 4v16M17 4v16M3 9h4M17 9h4M3 15h4M17 15h4" /></svg>);
+    case "share":
+      return (<svg {...c}><circle cx="6" cy="12" r="2.4" /><circle cx="18" cy="6" r="2.4" /><circle cx="18" cy="18" r="2.4" /><path d="M8.1 10.9l7.8-3.8M8.1 13.1l7.8 3.8" /></svg>);
+    case "code":
+      return (<svg {...c}><path d="M8 8l-4 4 4 4M16 8l4 4-4 4M13 5l-2 14" /></svg>);
+    case "mobile":
+      return (<svg {...c}><rect x="6" y="3" width="12" height="18" rx="2.5" /><path d="M11 18h2" /></svg>);
+    default:
+      return null;
+  }
+}
+
+type Service = { n: string; title: string; desc: string; icon: string; color: string; tools: string[] };
+
+// Açıklamalar bilerek uzmanlığı belli edecek şekilde yazıldı (hangi programı
+// bildiğim, ne yaptığım net). Araç etiketleri de aynı amaca hizmet eder.
+const services: Service[] = [
+  {
+    n: "01",
+    title: "3D & Mekanik Tasarım",
+    desc: "SolidWorks ve AutoCAD ile parça ve ürün tasarlıyorum: 3D modelleme, montaj ve üretime hazır teknik resim. Fikri, atölyede üretilebilir gerçek bir parçaya çeviriyorum.",
+    icon: "cube",
+    color: "#e0a94a",
+    tools: ["SolidWorks", "AutoCAD", "Fusion 360", "Teknik Resim"],
+  },
+  {
+    n: "02",
+    title: "CNC Üretim Hazırlığı",
+    desc: "Bir parçanın CNC tezgahında nasıl kesileceğini baştan sona planlıyorum: AutoCAD ve SolidCAM ile tezgahın izleyeceği yolu çıkarıp makinenin anlayacağı komutları (G-code) hazırlıyorum. Yani tasarımı, doğrudan makinede üretilebilir hale getiriyorum.",
+    icon: "cnc",
+    color: "#6fb7d9",
+    tools: ["SolidCAM", "AutoCAD", "G-Code", "CAM"],
+  },
+  {
+    n: "03",
+    title: "Video Prodüksiyon",
+    desc: "Çekimden kurguya: sinematik montaj, renk düzenleme ve ses tasarımıyla markanı anlatan, akılda kalıcı videolar üretiyorum.",
+    icon: "film",
+    color: "#d98a5a",
+    tools: ["Premiere Pro", "After Effects", "DaVinci", "Renk"],
+  },
+  {
+    n: "04",
+    title: "Sosyal Medya Yönetimi",
+    desc: "İçerik üretimi, reels ve reklam yönetimiyle (Meta Ads) hesabını düzenler, doğru kitleye ulaştırır ve markanı öne çıkarırım.",
+    icon: "share",
+    color: "#b58cd9",
+    tools: ["Meta Ads", "Reels", "İçerik", "Reklam"],
+  },
+  {
+    n: "05",
+    title: "Web Geliştirme",
+    desc: "Sıfırdan, uçtan uca profesyonel web siteleri: hızlı, modern, SEO uyumlu ve kolay yönetilebilir — tıpkı şu an gezdiğin bu site gibi.",
+    icon: "code",
+    color: "#5fd9a8",
+    tools: ["Next.js", "React", "Three.js", "Tailwind"],
+  },
+  {
+    n: "06",
+    title: "Mobil Uygulama Geliştirme",
+    desc: "iOS ve Android için modern ve akıcı mobil uygulamalar geliştiriyorum — tasarımdan mağazaya yayına, tek elden uçtan uca. React Native, Flutter, Kotlin ve Swift ile hem tek koddan iki platform hem de her platforma özel geliştirme.",
+    icon: "mobile",
+    color: "#7b8cf5",
+    tools: ["React Native", "Flutter", "Kotlin", "Swift"],
+  },
+];
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+export function Services() {
+  // MOBİLDE hover yok → kaydırdıkça ekran ortasına gelen kart "aktif" olur ve
+  // PC'deki hover efektinin AYNISINI alır (kalkma + kenar + çizgi + ikon rengi).
+  // Konumlar önbelleğe alınır (scroll'da layout okuması yok → akıcı). Masaüstünde
+  // active kullanılmaz (max-lg: sınıfları geniş ekranda uygulanmaz), hover geçerli.
+  const [active, setActive] = useState(-1);
+  const cards = useRef<(HTMLElement | null)[]>([]);
+
+  useEffect(() => {
+    let raf = 0;
+    let centers: number[] = [];
+    const measure = () => {
+      const sy = window.scrollY;
+      centers = cards.current.map((el) => (el ? el.getBoundingClientRect().top + sy + el.offsetHeight / 2 : Infinity));
+    };
+    const tick = () => {
+      raf = 0;
+      const mid = window.scrollY + window.innerHeight / 2;
+      let best = 0;
+      let bd = Infinity;
+      for (let i = 0; i < centers.length; i++) {
+        const d = Math.abs(centers[i] - mid);
+        if (d < bd) {
+          bd = d;
+          best = i;
+        }
+      }
+      setActive((p) => (p !== best ? best : p));
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    const onResize = () => {
+      measure();
+      onScroll();
+    };
+    measure();
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onResize);
+    const ro = new ResizeObserver(onResize);
+    ro.observe(document.body);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onResize);
+      ro.disconnect();
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return (
+    <section id="hizmetler" className="relative px-6 py-28 sm:px-10">
+      <div className="mx-auto max-w-6xl">
+        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.7, ease: EASE }}>
+          <span className="mb-3 block text-xs uppercase tracking-[0.4em] opacity-50">Hizmetler</span>
+          <div className="flex items-end justify-between gap-6">
+            <h2 className="font-display text-4xl font-bold tracking-tight sm:text-6xl">Ne yapıyorum?</h2>
+            <span className="hidden font-mono text-xs uppercase tracking-[0.3em] opacity-50 sm:block">6 alan · tek elden</span>
+          </div>
+        </motion.div>
+
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {services.map((s, i) => {
+            const on = active === i; // mobilde ekran ortasındaki kart
+            return (
+              <motion.article
+                key={s.n}
+                ref={(el) => {
+                  cards.current[i] = el;
+                }}
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-70px" }}
+                transition={{ duration: 0.55, delay: (i % 3) * 0.07, ease: EASE }}
+                style={{ "--ac": s.color } as CSSProperties}
+                className={`group relative overflow-hidden rounded-2xl border border-current/12 bg-current/[0.02] p-7 transition-[transform,border-color,box-shadow] duration-500 ease-out hover:-translate-y-1.5 hover:border-[var(--ac)] hover:shadow-[0_26px_60px_-28px_var(--ac)] ${
+                  on ? "max-lg:-translate-y-1.5 max-lg:border-[var(--ac)] max-lg:shadow-[0_22px_50px_-26px_var(--ac)]" : ""
+                }`}
+              >
+                {/* köşe ışıması — masaüstü hover + mobil aktif kart */}
+                <span aria-hidden className={`pointer-events-none absolute -right-12 -top-12 h-36 w-36 rounded-full opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-25 ${on ? "max-lg:opacity-20" : ""}`} style={{ background: s.color }} />
+                {/* dev hayalet numara */}
+                <span aria-hidden className="pointer-events-none absolute right-5 top-3 font-display text-6xl font-bold leading-none opacity-[0.06]">{s.n}</span>
+
+                {/* ikon kutusu */}
+                <div className={`relative flex h-14 w-14 items-center justify-center rounded-xl border border-current/15 transition-colors duration-500 group-hover:border-[var(--ac)] ${on ? "max-lg:border-[var(--ac)]" : ""}`}>
+                  <span className={`transition-colors duration-500 lg:group-hover:text-[var(--ac)] ${on ? "max-lg:text-[var(--ac)]" : ""}`}>
+                    <Icon name={s.icon} size={26} />
+                  </span>
+                </div>
+
+                <h3 className="relative mt-6 font-display text-xl font-bold tracking-tight sm:text-2xl">{s.title}</h3>
+                <p className="relative mt-3 text-sm leading-6 opacity-65">{s.desc}</p>
+
+                <div className="relative mt-6 flex flex-wrap gap-2">
+                  {s.tools.map((t) => (
+                    <span key={t} className="rounded-full border px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider opacity-75 transition-colors duration-500" style={{ borderColor: `${s.color}44` }}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+
+                {/* alt vurgu çizgisi — masaüstü hover, mobilde aktif kartta */}
+                <span className={`absolute bottom-0 left-0 h-[3px] w-full origin-left scale-x-0 transition-transform duration-500 ease-out lg:group-hover:scale-x-100 ${on ? "max-lg:scale-x-100" : ""}`} style={{ background: s.color }} />
+              </motion.article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

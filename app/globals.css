@@ -1,26 +1,108 @@
 @import "tailwindcss";
 
+/*
+  Abdullah Kırkıl — Tasarım sistemi (renk paleti + tipografi)
+  Koyu/premium tema: grafit zemin + elektrik mavisi ana vurgu + amber ikincil vurgu.
+  Renkleri burada tek yerden yönetiyoruz; tüm sitede aynı değerler kullanılır.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Monokrom grafit-çelik: lüks, minimal, asil (siyah-gri-beyaz) */
+  --background: #08090a; /* neredeyse siyah, sıcak grafit */
+  --surface: #101114; /* kartlar / paneller */
+  --surface-2: #181a1e; /* daha açık yüzey / hover */
+  --foreground: #f4f5f6; /* kırık beyaz (saf beyaz değil) */
+  --muted: #9a9da3; /* soluk / ikincil metin */
+  --accent: #f4f5f6; /* monokrom vurgu = parlak beyaz (aktif/etkileşim) */
+  --accent-strong: #ffffff; /* en parlak (hover) */
+  --gold: #cfd3d9; /* monokrom "sinyal": gümüş (CTA + etiketler) */
+  --border: rgba(255, 255, 255, 0.07); /* ince hairline çizgiler */
 }
 
+/* Tailwind v4: bu değişkenleri Tailwind sınıflarına bağlıyoruz.
+   Böylece bg-background, text-accent, border-border gibi sınıfları kullanabiliyoruz. */
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-gold: var(--gold);
+  --color-border: var(--border);
+
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-space-grotesk);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+}
+
+/* Lenis akıcı kaydırma için önerilen temel stiller */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Seçili metin rengi (küçük premium dokunuş) */
+::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
+
+/* Kayan yazı bandı (marquee) — sonsuz yatay akış */
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Hizmet görselinde yavaş yakınlaşma (Ken Burns) — sahne canlı dursun */
+.kenburns {
+  animation: kenburns 16s ease-out both;
+}
+@keyframes kenburns {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.14) translate(-2%, -2%);
+  }
+}
+
+/* Açılış ekranındaki yükleme çubuğu animasyonu */
+.loader-bar {
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: loaderbar 2.3s ease-in-out forwards;
+}
+@keyframes loaderbar {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
 }
