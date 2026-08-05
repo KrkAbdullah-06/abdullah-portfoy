@@ -39,6 +39,10 @@ const linkFx =
 
 export function Experience() {
   const progress = useRef(0);
+  // Açılış (CadIntro) ekranı ekranı OPAK kaplarken arkadaki 3D çark GÖRÜNMEZ ama
+  // yine de çiziliyordu (mobilde en büyük israf). Bu bayrak, çark görünür hale
+  // gelmeye yakın true olur → BackgroundStage o ana kadar render'ı DURAKLATIR.
+  const gearActive = useRef(true);
   const bgColor = useRef(new THREE.Color("#08090a"));
   const pageBg = useRef<HTMLDivElement>(null);
   const headerBlurRef = useRef<HTMLDivElement>(null);
@@ -128,6 +132,11 @@ export function Experience() {
       // pozunda (ismin üstünde, yatay/ortada) durur, sağdan gelmez. Sonra iner.
       const introEnd = layout.introTop + Math.max(1, layout.introH - vh);
       progress.current = Math.min(1, Math.max(0, (sy - introEnd) / Math.max(1, layout.max - introEnd)));
+
+      // Çark, açılışın son ~%18'ine gelince (devir anına yakın) render'a başlar;
+      // öncesinde opak açılış ekranının arkasında görünmediği için çizilmez →
+      // açılış boyunca GPU tamamen açılış animasyonuna kalır (mobil kasma çözümü).
+      gearActive.current = layout.introH > 0 ? sy + vh > layout.introTop + layout.introH * 0.82 : true;
 
       const enter = smoothstep((vh - (layout.portfoyTop - sy)) / vh);
       const exit = smoothstep((vh - (layout.footerTop - sy)) / (0.55 * vh));
@@ -263,7 +272,7 @@ export function Experience() {
       {/* Sabit 3D arka plan (mat çark) — HER CİHAZDA, mobilde hafif ayarlarla */}
       {gfx.ready && (
         <div className="fixed inset-0 -z-10">
-          <BackgroundStage progress={progress} bgColor={bgColor} mobile={gfx.mobile} />
+          <BackgroundStage progress={progress} bgColor={bgColor} mobile={gfx.mobile} active={gearActive} />
         </div>
       )}
 

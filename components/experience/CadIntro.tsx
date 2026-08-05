@@ -148,6 +148,11 @@ export function CadIntro() {
     let lastWrite = 0;
     let lastSkColor = "";
     let lastBgColor = "";
+    // Değişmeyen transform'ları tekrar yazmayı önlemek için son değer önbelleği
+    // (SVG'de transform değişimi REPAINT tetikler; sabit fazlarda boşuna boyamayı
+    // engeller — görünüm aynı, mobilde daha az iş).
+    let lastGG = "";
+    let lastGW = "";
     const frame = (t: number) => {
       const p = Math.min(1, Math.max(0, (window.scrollY - top) / len));
       // MOBİL: pahalı yazma bloğu ~20fps'e sınırlanır. scrollY her rAF'ta
@@ -238,7 +243,11 @@ export function CadIntro() {
         const sketchScale = 0.82 + 0.18 * seg(p, 0.15, 0.62);
         const settleRot = -8 * (1 - seg(p, 0.2, 0.66));
         if (gearGroupRef.current) {
-          gearGroupRef.current.setAttribute("transform", `translate(50 50) rotate(${settleRot.toFixed(2)}) scale(${sketchScale.toFixed(3)}) translate(-50 -50)`);
+          const gg = `translate(50 50) rotate(${settleRot.toFixed(2)}) scale(${sketchScale.toFixed(3)}) translate(-50 -50)`;
+          if (gg !== lastGG) {
+            gearGroupRef.current.setAttribute("transform", gg);
+            lastGG = gg;
+          }
         }
 
         // Boss-Ekstrüzyon önizleme (sarı/haki) + dikey sürükleme tutamacı + Ø60.00 lider etiketi
@@ -250,20 +259,28 @@ export function CadIntro() {
         // MOBİL: `filter: drop-shadow` per-kare hesaplaması pahalı (blur
         // konvolüsyonu) → mobilde tamamen atlanır, masaüstünde AYNEN kalır.
         if (gearWrapRef.current) {
-          gearWrapRef.current.style.transform = `perspective(820px) rotateX(${tilt.toFixed(2)}deg)`;
+          const gw = `perspective(820px) rotateX(${tilt.toFixed(2)}deg)`;
+          if (gw !== lastGW) {
+            gearWrapRef.current.style.transform = gw;
+            lastGW = gw;
+          }
           if (!mobile) {
             gearWrapRef.current.style.filter = body > 0 ? `drop-shadow(0 ${(body * 10).toFixed(1)}px ${(body * 11).toFixed(1)}px rgba(0,0,0,${(0.32 * body).toFixed(2)}))` : "none";
           }
         }
 
-        // GERÇEK KALINLIK: katmanlar arkaya doğru istiflenir, kalınlık büyür
+        // GERÇEK KALINLIK: katmanlar arkaya doğru istiflenir, kalınlık büyür.
+        // Yalnızca gövde fazında (body>0) çalışır → çizim/formasyon boyunca bu
+        // katman döngüsü hiç dönmez (mobilde her karede 6 setAttribute tasarrufu).
         if (bodyRef.current) {
           bodyRef.current.style.opacity = String(body);
-          const depth = body * BODY_MAX_DEPTH;
-          const kids = bodyRef.current.children;
-          for (let j = 0; j < kids.length; j++) {
-            const off = ((kids.length - j) / kids.length) * depth;
-            (kids[j] as SVGPathElement).setAttribute("transform", `translate(0 ${off.toFixed(2)})`);
+          if (body > 0) {
+            const depth = body * BODY_MAX_DEPTH;
+            const kids = bodyRef.current.children;
+            for (let j = 0; j < kids.length; j++) {
+              const off = ((kids.length - j) / kids.length) * depth;
+              (kids[j] as SVGPathElement).setAttribute("transform", `translate(0 ${off.toFixed(2)})`);
+            }
           }
         }
         if (fillRef.current) fillRef.current.style.opacity = String(face);

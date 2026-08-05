@@ -77,16 +77,17 @@ function GearAssembly({ progress, bgColor, mobile }: { progress: RefObject<numbe
 // katmanında uygulanıyor. Böylece canvas şeffaf kalır ve MOBİLDE tamamen
 // kapatılabilir (performans) — zemin renkleri yine de doğru çalışır.
 
-// Mobilde kareyi ~30fps'e sabitler (frameloop="demand" + 30fps invalidate).
-// Böylece çark saniyede 60 yerine 30 kez çizilir → GPU/işlemci yükü yarıya iner.
-function FpsCap({ fps }: { fps: number }) {
+// Mobilde kareyi sabit fps'e sınırlar (frameloop="demand" + invalidate).
+// `active` false iken (açılış ekranı çarkı kaplarken) HİÇ invalidate etmez →
+// çark çizilmez, GPU açılış animasyonuna kalır. Görünür olunca render sürer.
+function FpsCap({ fps, active }: { fps: number; active?: RefObject<boolean> }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     let id = 0;
     let last = 0;
     const step = 1000 / fps;
     const loop = (t: number) => {
-      if (t - last >= step) {
+      if (t - last >= step && (active?.current ?? true)) {
         last = t;
         invalidate();
       }
@@ -94,7 +95,7 @@ function FpsCap({ fps }: { fps: number }) {
     };
     id = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(id);
-  }, [fps, invalidate]);
+  }, [fps, invalidate, active]);
   return null;
 }
 
@@ -102,10 +103,12 @@ export function BackgroundStage({
   progress,
   bgColor,
   mobile = false,
+  active,
 }: {
   progress: RefObject<number>;
   bgColor: RefObject<THREE.Color>;
   mobile?: boolean;
+  active?: RefObject<boolean>;
 }) {
   // MOBİL AYARI: çark metalness=0 (ortam haritasına gerek yok) → Environment/PMREM
   // TAMAMEN atlanır. Çark MAT ve arka planda olduğu için tam çözünürlüğe gerek yok:
@@ -120,7 +123,7 @@ export function BackgroundStage({
       dpr={mobile ? 1 : [1, 1.75]}
       gl={{ antialias: true, powerPreference: "low-power" }}
     >
-      {mobile && <FpsCap fps={24} />}
+      {mobile && <FpsCap fps={24} active={active} />}
       <ambientLight intensity={mobile ? 0.85 : 0.5} />
       <directionalLight position={[5, 6, 6]} intensity={mobile ? 2.0 : 1.3} />
 
