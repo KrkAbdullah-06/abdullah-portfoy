@@ -15,9 +15,7 @@
 
 # next.js
 /.next/
-# /out/ — NORMALDE göz ardı edilir, ama Hostinger paylaşımlı hosting Git
-# dağıtımı derleme yapmadığı için hazır statik çıktıyı BİLEREK depoya
-# ekliyoruz (bkz. next.config.ts açıklaması). Bu satır kasıtlı olarak YOK.
+/out/
 
 # production
 /build
