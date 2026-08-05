@@ -57,8 +57,11 @@ function GearAssembly({ progress, bgColor, mobile }: { progress: RefObject<numbe
     g.position.z = -3 + Math.sin(p * Math.PI * 2) * 1.6;
   });
 
+  // Mobilde çark KÜÇÜLTÜLÜR (PC/tablet 2.2 aynı kalır). İki fayda: (1) hizmetler
+  // bölümünde ekrandan taşmaz, (2) kapladığı piksel alanı ~%55 azalır → GPU
+  // fillrate yükü düşer, scroll'daki çark kasması ciddi azalır. Silüet/hareket aynı.
   return (
-    <group ref={ref} position={[0, 1.2, -3]} scale={2.2}>
+    <group ref={ref} position={[0, 1.2, -3]} scale={mobile ? 1.5 : 2.2}>
       <mesh ref={mesh} geometry={gearGeo}>
         {/* Mobil: metalness 0 (ortam haritasına ihtiyaç yok) → Environment
             atlanabilir, piksel başına maliyet çok düşer, dpr yükseltilebilir.
