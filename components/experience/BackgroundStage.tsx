@@ -108,17 +108,19 @@ export function BackgroundStage({
   mobile?: boolean;
 }) {
   // MOBİL AYARI: çark metalness=0 (ortam haritasına gerek yok) → Environment/PMREM
-  // TAMAMEN atlanır (en büyük GPU tasarrufu). Piksel başına maliyet çok düştüğü
-  // için dpr YÜKSELTİLİR (pikselli görünmesin) + antialias açık. 30fps cap korunur.
-  // Işıklar mobilde biraz güçlendirildi (env yokken çark net görünsün).
+  // TAMAMEN atlanır. Çark MAT ve arka planda olduğu için tam çözünürlüğe gerek yok:
+  // dpr=1 (CSS pikseli) → yüksek yoğunluklu telefonlarda çizilecek piksel sayısı
+  // 2-3 KAT azalır (en büyük scroll takılması kaynağı buydu). antialias kenarları
+  // yumuşatır, mat yüzeyde fark belli olmaz. Kare hızı 24'e indirildi (arka plan
+  // dönüşü için yeterince akıcı, GPU'ya daha çok nefes). Masaüstü AYNEN kalır.
   return (
     <Canvas
       frameloop={mobile ? "demand" : "always"}
       camera={{ position: [0, 0, 11], fov: 42 }}
-      dpr={mobile ? [1, 1.5] : [1, 1.75]}
+      dpr={mobile ? 1 : [1, 1.75]}
       gl={{ antialias: true, powerPreference: "low-power" }}
     >
-      {mobile && <FpsCap fps={30} />}
+      {mobile && <FpsCap fps={24} />}
       <ambientLight intensity={mobile ? 0.85 : 0.5} />
       <directionalLight position={[5, 6, 6]} intensity={mobile ? 2.0 : 1.3} />
 

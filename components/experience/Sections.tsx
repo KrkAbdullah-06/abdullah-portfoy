@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LogoSpin3D } from "./LogoSpin3D";
 import { Icon } from "./Services";
@@ -478,11 +478,9 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
   return (
     <motion.article
       ref={ref}
-      layout
       initial={{ opacity: 0, y: 48, scale: 0.94 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-60px" }}
-      exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.6, delay: (i % 3) * 0.08, ease: [0.16, 1, 0.3, 1] }}
       style={{ "--ac": CAT_COLOR[p.cat] } as CSSProperties}
       // CAM EFEKTİ (glassmorphism) — düz opak beyaz "her yer beyaz" görünümü
@@ -597,14 +595,16 @@ export function Work() {
           </div>
         </R>
 
-        {/* kart ızgarası — filtrelemede yumuşak yeniden dizilim */}
-        <motion.div layout className="mt-10 grid gap-6 sm:auto-rows-fr sm:grid-cols-2 lg:grid-cols-3">
-          <AnimatePresence mode="popLayout">
-            {filtered.map((p, i) => (
-              <ProjectCard key={p.id} p={p} i={i} />
-            ))}
-          </AnimatePresence>
-        </motion.div>
+        {/* kart ızgarası — kategori değişince tüm set yeniden mount olur (key=cat)
+            → kartlar temizce sırayla belirir. ESKİDEN framer-motion `layout` +
+            `popLayout` vardı: her filtrede tüm kartların konumu ölçülüp (reflow)
+            kaydırılıyordu → mobilde "bağa girme"/takılma. Kaldırıldı; artık tek
+            yönlü ucuz bir fade-in var, aynı görünüm ama reflow yok. */}
+        <div key={cat} className="mt-10 grid gap-6 sm:auto-rows-fr sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((p, i) => (
+            <ProjectCard key={p.id} p={p} i={i} />
+          ))}
+        </div>
       </div>
     </section>
   );
