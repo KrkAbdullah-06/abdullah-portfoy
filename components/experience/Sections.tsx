@@ -550,44 +550,63 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
   );
 }
 
-/* ————— Coverflow vitrin kartı (ortadaki büyük, yanlardakiler soluk) ————— */
+/* ————— Coverflow vitrin kartı (ortadaki büyük — mouse ile 3D eğilir) ————— */
 function CoverCard({ p, color, active, onSelect }: { p: Project; color: string; active: boolean; onSelect: () => void }) {
+  const ref = useRef<HTMLElement>(null);
   return (
     <article
+      ref={ref}
       onClick={active ? undefined : onSelect}
+      onMouseMove={(e) => {
+        // Sadece ortadaki (aktif) kart, mouse'a göre 3D eğilir (masaüstü hissi).
+        if (!active) return;
+        const el = ref.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const px = (e.clientX - r.left) / r.width - 0.5;
+        const py = (e.clientY - r.top) / r.height - 0.5;
+        el.style.transform = `perspective(950px) rotateY(${(px * 12).toFixed(2)}deg) rotateX(${(-py * 9).toFixed(2)}deg) translateZ(26px)`;
+      }}
+      onMouseLeave={() => {
+        if (ref.current) ref.current.style.transform = "";
+      }}
       style={{ "--ac": color } as CSSProperties}
-      className={`relative flex h-[380px] flex-col overflow-hidden rounded-2xl border bg-white text-[#141416] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.6)] sm:h-[404px] ${
-        active ? "cursor-default border-white" : "cursor-pointer border-white/45"
+      className={`group/card relative flex h-[420px] flex-col overflow-hidden rounded-[22px] border bg-white text-[#141416] transition-[transform,box-shadow] duration-200 ease-out will-change-transform sm:h-[464px] ${
+        active
+          ? "cursor-default border-white shadow-[0_40px_100px_-36px_var(--ac)]"
+          : "cursor-pointer border-white/40 shadow-[0_26px_64px_-32px_rgba(0,0,0,0.7)]"
       }`}
     >
-      {/* görsel alan — kategori rengiyle desenli (henüz gerçek görsel yok) */}
-      <div
-        className="relative h-[52%] overflow-hidden"
-        style={{ background: `radial-gradient(circle at 28% 22%, ${color}55, transparent 60%), radial-gradient(circle at 80% 82%, ${color}2e, transparent 55%), #111214` }}
-      >
-        <div className="absolute left-4 top-4 flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg text-white" style={{ background: color }}>
-            <Icon name={CAT_ICON[p.cat]} size={18} />
+      {/* görsel alan — kategori rengi deseni + CAD ızgara dokusu (hover'da yakınlaşır) */}
+      <div className="relative h-[54%] overflow-hidden">
+        <div
+          className="absolute inset-0 transition-transform duration-[650ms] ease-out group-hover/card:scale-[1.06]"
+          style={{ background: `radial-gradient(circle at 28% 20%, ${color}66, transparent 60%), radial-gradient(circle at 82% 84%, ${color}36, transparent 55%), #0f1013` }}
+        />
+        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:26px_26px]" />
+        <div className="absolute left-5 top-5 flex items-center gap-2.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-[0_8px_20px_-6px_var(--ac)]" style={{ background: color }}>
+            <Icon name={CAT_ICON[p.cat]} size={20} />
           </div>
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/85">{p.cat}</span>
         </div>
-        <span className="absolute right-4 top-4 font-mono text-[11px] tabular-nums text-white/60">{p.year}</span>
-        <span aria-hidden className="pointer-events-none absolute -bottom-7 -right-2 font-display text-[7rem] font-bold leading-none text-white/[0.08]">{p.id}</span>
+        <span className="absolute right-5 top-5 font-mono text-[11px] tabular-nums text-white/55">{p.year}</span>
+        <span aria-hidden className="pointer-events-none absolute -bottom-8 -right-1 font-display text-[8rem] font-bold leading-none text-white/[0.09]">{p.id}</span>
       </div>
 
       {/* içerik */}
-      <div className="flex flex-1 flex-col p-6">
-        <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight">{p.title}</h3>
-        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#141416]/70">{p.desc}</p>
+      <div className="relative flex flex-1 flex-col p-7">
+        <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight sm:text-[1.7rem]">{p.title}</h3>
+        <p className="mt-2.5 line-clamp-2 text-sm leading-6 text-[#141416]/70">{p.desc}</p>
         {active && (
           <a
             href={p.url ?? "#iletisim"}
             {...(p.url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-            className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-semibold"
+            className="group/link mt-auto inline-flex items-center gap-2 pt-5 text-sm font-semibold"
             style={{ color }}
           >
             {p.url ? "Siteyi aç" : "Projeyi gör"}
-            <span aria-hidden>↗</span>
+            <span aria-hidden className="transition-transform duration-300 group-hover/link:translate-x-1">↗</span>
           </a>
         )}
       </div>
@@ -597,21 +616,22 @@ function CoverCard({ p, color, active, onSelect }: { p: Project; color: string; 
   );
 }
 
-/* ————— Coverflow carousel (ok + sayaç + kaydırma) ————— */
+/* ————— Coverflow carousel — SONSUZ döngü (iki yanda da kart), ok + sayaç ————— */
 function WorkCoverflow({ items }: { items: Project[] }) {
   const [idx, setIdx] = useState(0);
   const n = items.length;
-  const go = (d: number) => setIdx((i) => Math.max(0, Math.min(n - 1, i + d)));
+  const go = (d: number) => setIdx((i) => i + d); // sınır yok → sonsuz döner
   const touchX = useRef<number | null>(null);
 
   if (n === 0) return null;
+  const cur = ((idx % n) + n) % n; // 0..n-1 (sayaç için)
 
   return (
-    <div className="mt-12">
-      {/* Sahne — sadece merkeze yakın 5 kart çizilir (mobil dostu) */}
+    <div className="mt-14">
+      {/* Sahne — merkeze yakın 5 kart çizilir; halka mantığıyla iki yanda da kart olur */}
       <div
-        className="relative mx-auto flex h-[420px] items-center justify-center overflow-hidden sm:h-[460px]"
-        style={{ perspective: "1600px" }}
+        className="relative mx-auto flex h-[480px] items-center justify-center overflow-hidden sm:h-[544px]"
+        style={{ perspective: "1500px" }}
         onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
         onTouchEnd={(e) => {
           if (touchX.current == null) return;
@@ -621,7 +641,9 @@ function WorkCoverflow({ items }: { items: Project[] }) {
         }}
       >
         {items.map((p, i) => {
-          const off = i - idx;
+          // halka üzerindeki en kısa mesafe → baştan da SOL kart görünür
+          let off = (((i - cur) % n) + n) % n;
+          if (off > n / 2) off -= n;
           const abs = Math.abs(off);
           if (abs > 2) return null;
           const active = off === 0;
@@ -629,42 +651,40 @@ function WorkCoverflow({ items }: { items: Project[] }) {
             <div
               key={p.id}
               aria-hidden={!active}
-              className="absolute left-1/2 top-1/2 w-[min(86vw,560px)] transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] [will-change:transform]"
+              className="absolute left-1/2 top-1/2 w-[min(90vw,600px)] transition-[transform,opacity] duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] [will-change:transform]"
               style={{
-                transform: `translate(-50%,-50%) translateX(${off * 56}%) translateZ(${-abs * 140}px) rotateY(${-off * 22}deg) scale(${1 - abs * 0.13})`,
-                opacity: active ? 1 : abs === 1 ? 0.6 : 0.3,
+                transform: `translate(-50%,-50%) translateX(${off * 46}%) translateZ(${-abs * 190}px) rotateY(${-off * 27}deg) scale(${1 - abs * 0.08})`,
+                opacity: active ? 1 : abs === 1 ? 0.72 : 0.4,
                 zIndex: 20 - abs,
                 pointerEvents: abs > 1 ? "none" : "auto",
               }}
             >
-              <CoverCard p={p} color={CAT_COLOR[p.cat]} active={active} onSelect={() => setIdx(i)} />
+              <CoverCard p={p} color={CAT_COLOR[p.cat]} active={active} onSelect={() => setIdx(idx + off)} />
             </div>
           );
         })}
       </div>
 
       {/* Kontroller: ok tuşları + sayaç (02 | 10) */}
-      <div className="mt-8 flex items-center justify-center gap-6">
+      <div className="mt-10 flex items-center justify-center gap-6">
         <button
           type="button"
           onClick={() => go(-1)}
-          disabled={idx === 0}
           aria-label="Önceki proje"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-current/25 text-lg transition hover:border-current/70 hover:bg-current/10 disabled:opacity-25 disabled:hover:bg-transparent"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-current/25 text-xl transition hover:-translate-x-0.5 hover:border-current/70 hover:bg-current/10 active:scale-95"
         >
           <span aria-hidden>‹</span>
         </button>
         <div className="flex items-center gap-2.5 font-mono text-sm tabular-nums">
-          <span>{String(idx + 1).padStart(2, "0")}</span>
+          <span>{String(cur + 1).padStart(2, "0")}</span>
           <span className="opacity-30">|</span>
           <span className="opacity-45">{String(n).padStart(2, "0")}</span>
         </div>
         <button
           type="button"
           onClick={() => go(1)}
-          disabled={idx === n - 1}
           aria-label="Sonraki proje"
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-current/25 text-lg transition hover:border-current/70 hover:bg-current/10 disabled:opacity-25 disabled:hover:bg-transparent"
+          className="flex h-12 w-12 items-center justify-center rounded-full border border-current/25 text-xl transition hover:translate-x-0.5 hover:border-current/70 hover:bg-current/10 active:scale-95"
         >
           <span aria-hidden>›</span>
         </button>
