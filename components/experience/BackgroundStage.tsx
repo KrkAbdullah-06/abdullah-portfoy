@@ -38,19 +38,9 @@ function GearAssembly({ progress, bgColor, mobile, warp }: { progress: RefObject
     smooth.current += (target - smooth.current) * (mobile ? 0.18 : 1);
     const p = smooth.current;
 
-    // zemin aydınlandıkça çark açık griye döner (yazı okunsun)
-    const mat = mesh.current?.material as (THREE.Material & { color?: THREE.Color }) | undefined;
-    if (mat?.color && bgColor.current) {
-      const t = THREE.MathUtils.clamp((bgColor.current.r - 0.03) / 0.9, 0, 1);
-      mat.color.copy(gearDark).lerp(gearLight, t);
-    }
-
-    // Hareket HER CİHAZDA scroll'a bağlı (PC ile AYNI görünüm) — mobilde de artık
-    // akıcı çünkü progress her karede scrollY'den okunuyor.
-    // İLETİŞİME "IŞINLANMA / ZOOM": scroll son bölüme (p>0.75) gelince çark
-    // merkeze toplanıp kameraya doğru büyür → "Bir fikrin mi var? Hayata
-    // geçirelim." bölümüne çarkın içinden geçerek varış hissi. Adım adım her
-    // kaydırmada ilerler. p<0.75 iken zoom=0 → sitenin geri kalanı AYNEN korunur.
+    // İLETİŞİME "IŞINLANMA / ZOOM": iletişim bölümü yaklaşınca (warp 0→1) çark
+    // merkeze toplanıp kameraya doğru BÜYÜR → "Bir fikrin mi var?" bölümüne
+    // çarkın içinden varış. warp=0 iken sitenin geri kalanı AYNEN korunur.
     const wt = warp?.current ?? 0;
     if (warpS.current === null) warpS.current = wt;
     warpS.current += (wt - warpS.current) * (mobile ? 0.2 : 1); // mobilde yumuşat
@@ -58,7 +48,16 @@ function GearAssembly({ progress, bgColor, mobile, warp }: { progress: RefObject
     const zoom = w * w * (3 - 2 * w); // yumuşak geçiş (smoothstep)
     const zTarget = mobile ? 5.4 : 7.8;  // kameraya (z=11) yaklaşma hedefi
 
-    g.rotation.z += d * (0.14 + zoom * 0.85); // yaklaşırken hızlanır (savrulma)
+    // Renk: normalde zemine göre (koyu↔açık gri). AMA zoom sırasında iletişim
+    // zemini BEYAZ → açık çark görünmez olurdu. Bu yüzden zoom arttıkça çark
+    // KOYULAŞIR → beyaz zeminde dev KOYU çark = net "warp" görünürlüğü.
+    const mat = mesh.current?.material as (THREE.Material & { color?: THREE.Color }) | undefined;
+    if (mat?.color && bgColor.current) {
+      const t = THREE.MathUtils.clamp((bgColor.current.r - 0.03) / 0.9, 0, 1);
+      mat.color.copy(gearDark).lerp(gearLight, t * (1 - zoom));
+    }
+
+    g.rotation.z += d * (0.14 + zoom * 0.9); // yaklaşırken hızlanır (savrulma)
     g.rotation.x = (1.0 + Math.sin(p * Math.PI * 3) * 0.6) * (1 - zoom);
     g.rotation.y = p * Math.PI * 1.6;
     // Başlangıçta (p=0) çark YUKARIDA durur; zoom sırasında merkeze gelir.
