@@ -14,11 +14,12 @@ const matteSteel = { color: "#2b2c31", metalness: 0.2, roughness: 0.88 };
 const gearDark = new THREE.Color("#2b2c31");
 const gearLight = new THREE.Color("#c4c8ce");
 
-function GearAssembly({ progress, bgColor, mobile }: { progress: RefObject<number>; bgColor: RefObject<THREE.Color>; mobile: boolean }) {
+function GearAssembly({ progress, bgColor, mobile, warp }: { progress: RefObject<number>; bgColor: RefObject<THREE.Color>; mobile: boolean; warp?: RefObject<number> }) {
   const ref = useRef<THREE.Group>(null);
   const mesh = useRef<THREE.Mesh>(null);
   // mobilde sadeleştirilmiş geometri (silüet aynı, üçgen sayısı düşük)
   const gearGeo = useMemo(() => createGearGeometry(mobile), [mobile]);
+  const warpS = useRef<number | null>(null);
 
   // MOBİL AKICILIK: Telefonda kaydırma olayları seyrek ve gruplu geldiği için
   // çark, konumunu doğrudan progress'ten alınca SIÇRAYARAK ilerliyordu (takılma
@@ -50,8 +51,11 @@ function GearAssembly({ progress, bgColor, mobile }: { progress: RefObject<numbe
     // merkeze toplanıp kameraya doğru büyür → "Bir fikrin mi var? Hayata
     // geçirelim." bölümüne çarkın içinden geçerek varış hissi. Adım adım her
     // kaydırmada ilerler. p<0.75 iken zoom=0 → sitenin geri kalanı AYNEN korunur.
-    const z0 = THREE.MathUtils.clamp((p - 0.75) / 0.25, 0, 1);
-    const zoom = z0 * z0 * (3 - 2 * z0); // yumuşak geçiş (smoothstep)
+    const wt = warp?.current ?? 0;
+    if (warpS.current === null) warpS.current = wt;
+    warpS.current += (wt - warpS.current) * (mobile ? 0.2 : 1); // mobilde yumuşat
+    const w = warpS.current;
+    const zoom = w * w * (3 - 2 * w); // yumuşak geçiş (smoothstep)
     const zTarget = mobile ? 5.4 : 7.8;  // kameraya (z=11) yaklaşma hedefi
 
     g.rotation.z += d * (0.14 + zoom * 0.85); // yaklaşırken hızlanır (savrulma)
@@ -113,11 +117,13 @@ export function BackgroundStage({
   bgColor,
   mobile = false,
   active,
+  warp,
 }: {
   progress: RefObject<number>;
   bgColor: RefObject<THREE.Color>;
   mobile?: boolean;
   active?: RefObject<boolean>;
+  warp?: RefObject<number>;
 }) {
   // MOBİL AYARI: çark metalness=0 (ortam haritasına gerek yok) → Environment/PMREM
   // TAMAMEN atlanır. Çark MAT ve arka planda olduğu için tam çözünürlüğe gerek yok:
@@ -136,7 +142,7 @@ export function BackgroundStage({
       <ambientLight intensity={mobile ? 0.85 : 0.5} />
       <directionalLight position={[5, 6, 6]} intensity={mobile ? 2.0 : 1.3} />
 
-      <GearAssembly progress={progress} bgColor={bgColor} mobile={mobile} />
+      <GearAssembly progress={progress} bgColor={bgColor} mobile={mobile} warp={warp} />
 
       {/* Ortam haritası SADECE masaüstünde (metalik yansımalar için). Mobilde
           metalness=0 olduğundan gerekmiyor → maliyetli PMREM oluşturma+örnekleme yok. */}

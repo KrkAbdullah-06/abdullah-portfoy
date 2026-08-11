@@ -43,6 +43,9 @@ export function Experience() {
   // yine de çiziliyordu (mobilde en büyük israf). Bu bayrak, çark görünür hale
   // gelmeye yakın true olur → BackgroundStage o ana kadar render'ı DURAKLATIR.
   const gearActive = useRef(true);
+  // İletişime yaklaşma (0→1): portföyden sonra iletişim bölümü ekrana yaklaşırken
+  // artar → çark "ışınlanma zoom"u tam bu geçişte tetiklenir.
+  const warp = useRef(0);
   const bgColor = useRef(new THREE.Color("#08090a"));
   const pageBg = useRef<HTMLDivElement>(null);
   const headerBlurRef = useRef<HTMLDivElement>(null);
@@ -107,7 +110,7 @@ export function Experience() {
   // Her karede scrollY okumak ucuzdur (layout tetiklemez); konumlar önbellekte.
   useEffect(() => {
     let raf = 0;
-    const layout = { portfoyTop: 0, footerTop: 0, introTop: 0, introH: 0, max: 1 };
+    const layout = { portfoyTop: 0, footerTop: 0, introTop: 0, introH: 0, iletisimTop: 0, max: 1 };
     let lastBg = "";
     let lastLight = false;
     let lastHeaderHidden = true;
@@ -118,10 +121,12 @@ export function Experience() {
       const portfoy = document.getElementById("portfoy");
       const footer = document.querySelector("footer");
       const intro = document.getElementById("intro");
+      const iletisim = document.getElementById("iletisim");
       layout.portfoyTop = portfoy ? portfoy.getBoundingClientRect().top + sy : 0;
       layout.footerTop = footer ? footer.getBoundingClientRect().top + sy : 0;
       layout.introTop = intro ? intro.getBoundingClientRect().top + sy : 0;
       layout.introH = intro ? intro.offsetHeight : 0;
+      layout.iletisimTop = iletisim ? iletisim.getBoundingClientRect().top + sy : 0;
       layout.max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
     };
 
@@ -137,6 +142,17 @@ export function Experience() {
       // öncesinde opak açılış ekranının arkasında görünmediği için çizilmez →
       // açılış boyunca GPU tamamen açılış animasyonuna kalır (mobil kasma çözümü).
       gearActive.current = layout.introH > 0 ? sy + vh > layout.introTop + layout.introH * 0.82 : true;
+
+      // IŞINLANMA ZOOM ilerlemesi: iletişim bölümü ekranın üstüne ~1.1 ekran kala
+      // başlar, bölüm tepeye gelince (0.15 ekran kala) tamamlanır → portföyden
+      // sonra kaydırınca çark adım adım büyür, iletişimde en büyük halini alır.
+      if (layout.iletisimTop > 0) {
+        const wStart = layout.iletisimTop - vh * 1.1;
+        const wEnd = layout.iletisimTop - vh * 0.15;
+        warp.current = Math.min(1, Math.max(0, (sy - wStart) / Math.max(1, wEnd - wStart)));
+      } else {
+        warp.current = 0;
+      }
 
       const enter = smoothstep((vh - (layout.portfoyTop - sy)) / vh);
       const exit = smoothstep((vh - (layout.footerTop - sy)) / (0.55 * vh));
@@ -272,7 +288,7 @@ export function Experience() {
       {/* Sabit 3D arka plan (mat çark) — HER CİHAZDA, mobilde hafif ayarlarla */}
       {gfx.ready && (
         <div className="fixed inset-0 -z-10">
-          <BackgroundStage progress={progress} bgColor={bgColor} mobile={gfx.mobile} active={gearActive} />
+          <BackgroundStage progress={progress} bgColor={bgColor} mobile={gfx.mobile} active={gearActive} warp={warp} />
         </div>
       )}
 
