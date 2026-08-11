@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LogoSpin3D } from "./LogoSpin3D";
 import { Icon } from "./Services";
+import { AKMark } from "@/components/brand/AKMark";
 
 const reveal = {
   hidden: { opacity: 0, y: 28 },
@@ -693,6 +694,152 @@ function WorkCoverflow({ items }: { items: Project[] }) {
   );
 }
 
+/* ————— Projeler 3D dönen halka (ortada AK logo, etrafında proje kartları) ————— */
+function ProjectsOrbit({ items }: { items: Project[] }) {
+  const [active, setActive] = useState(0);
+  const [narrow, setNarrow] = useState(false);
+  const ringRef = useRef<HTMLDivElement>(null);
+  const angleRef = useRef(0);
+  const targetRef = useRef(0);
+  const activeRef = useRef(0);
+  const pausedRef = useRef(false);
+  const dragRef = useRef<{ x: number; a: number } | null>(null);
+
+  const n = items.length;
+  const stepDeg = n > 0 ? 360 / n : 60;
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setNarrow(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  const radius = narrow ? 185 : n <= 3 ? 260 : 370;
+
+  useEffect(() => {
+    let raf = 0;
+    const loop = () => {
+      if (!pausedRef.current && !dragRef.current) targetRef.current += 0.08; // yavaş otomatik dönüş
+      angleRef.current += (targetRef.current - angleRef.current) * 0.08;
+      if (ringRef.current) ringRef.current.style.transform = `translateZ(${-radius}px) rotateY(${angleRef.current}deg)`;
+      const idx = ((Math.round(-angleRef.current / stepDeg) % n) + n) % n;
+      if (idx !== activeRef.current) {
+        activeRef.current = idx;
+        setActive(idx);
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+  }, [radius, stepDeg, n]);
+
+  const go = (d: number) => {
+    targetRef.current += d * stepDeg;
+  };
+  const focus = (i: number) => {
+    const curIdx = -targetRef.current / stepDeg;
+    const nearest = Math.round((curIdx - i) / n) * n + i;
+    targetRef.current = -nearest * stepDeg;
+  };
+
+  if (n === 0) return null;
+
+  return (
+    <div className="mt-10 select-none">
+      <div
+        className="relative mx-auto flex h-[440px] items-center justify-center overflow-hidden sm:h-[520px]"
+        style={{ perspective: narrow ? "1000px" : "1300px" }}
+        onPointerDown={(e) => {
+          dragRef.current = { x: e.clientX, a: targetRef.current };
+        }}
+        onPointerMove={(e) => {
+          if (dragRef.current) targetRef.current = dragRef.current.a + (e.clientX - dragRef.current.x) * 0.35;
+        }}
+        onPointerUp={() => {
+          dragRef.current = null;
+        }}
+        onPointerLeave={() => {
+          dragRef.current = null;
+          pausedRef.current = false;
+        }}
+        onMouseEnter={() => {
+          pausedRef.current = true;
+        }}
+      >
+        {/* merkez amblem — AK logon */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 z-0 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-current/15 bg-current/[0.03] sm:h-24 sm:w-24">
+            <AKMark className="h-9 w-9 sm:h-11 sm:w-11" strokeWidth={2.2} />
+          </div>
+          <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.3em] opacity-45">seçili işler</div>
+        </div>
+
+        {/* dönen halka */}
+        <div ref={ringRef} className="relative h-full w-full [transform-style:preserve-3d]">
+          {items.map((p, i) => {
+            const on = i === active;
+            const color = CAT_COLOR[p.cat];
+            return (
+              <div
+                key={p.id}
+                style={{ transform: `rotateY(${i * stepDeg}deg) translateZ(${radius}px)`, "--ac": color } as CSSProperties}
+                className="absolute left-1/2 top-1/2 w-[200px] -translate-x-1/2 -translate-y-1/2 [backface-visibility:hidden] sm:w-[240px]"
+              >
+                <div
+                  onClick={() => (on ? undefined : focus(i))}
+                  className={`overflow-hidden rounded-2xl border bg-white text-[#141416] transition-[transform,box-shadow,opacity] duration-500 ${
+                    on ? "scale-105 border-white opacity-100 shadow-[0_28px_60px_-28px_var(--ac)]" : "cursor-pointer border-white/30 opacity-45"
+                  }`}
+                >
+                  <div className="relative h-28 overflow-hidden" style={{ background: `radial-gradient(circle at 30% 22%, ${color}66, transparent 60%), #101114` }}>
+                    <div className="absolute left-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg text-white" style={{ background: color }}>
+                      <Icon name={CAT_ICON[p.cat]} size={16} />
+                    </div>
+                    <span className="absolute right-3 top-3 font-mono text-[10px] tabular-nums text-white/60">{p.year}</span>
+                    <span aria-hidden className="pointer-events-none absolute -bottom-5 right-0 font-display text-6xl font-bold leading-none text-white/[0.1]">{p.id}</span>
+                  </div>
+                  <div className="p-4">
+                    <span className="font-mono text-[9px] uppercase tracking-[0.18em]" style={{ color }}>{p.cat}</span>
+                    <h3 className="mt-1 font-display text-base font-bold leading-tight tracking-tight">{p.title}</h3>
+                    {on && <p className="mt-2 line-clamp-2 text-xs leading-5 text-[#141416]/70">{p.desc}</p>}
+                    {on && (
+                      <a
+                        href={p.url ?? "#iletisim"}
+                        {...(p.url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold"
+                        style={{ color }}
+                      >
+                        {p.url ? "Siteyi aç" : "Projeyi gör"} <span aria-hidden>↗</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* kontroller */}
+      <div className="mt-6 flex items-center justify-center gap-6">
+        <button type="button" onClick={() => go(1)} aria-label="Önceki proje" className="flex h-11 w-11 items-center justify-center rounded-full border border-current/25 text-lg transition hover:border-current/70 hover:bg-current/10 active:scale-95">
+          <span aria-hidden>‹</span>
+        </button>
+        <div className="font-mono text-sm tabular-nums">
+          <span>{String(active + 1).padStart(2, "0")}</span>
+          <span className="opacity-30"> | </span>
+          <span className="opacity-45">{String(n).padStart(2, "0")}</span>
+        </div>
+        <button type="button" onClick={() => go(-1)} aria-label="Sonraki proje" className="flex h-11 w-11 items-center justify-center rounded-full border border-current/25 text-lg transition hover:border-current/70 hover:bg-current/10 active:scale-95">
+          <span aria-hidden>›</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Work() {
   const [cat, setCat] = useState<string>("Tümü");
   const filtered = cat === "Tümü" ? projects : projects.filter((p) => p.cat === cat);
@@ -743,8 +890,8 @@ export function Work() {
             `popLayout` vardı: her filtrede tüm kartların konumu ölçülüp (reflow)
             kaydırılıyordu → mobilde "bağa girme"/takılma. Kaldırıldı; artık tek
             yönlü ucuz bir fade-in var, aynı görünüm ama reflow yok. */}
-        {/* Coverflow vitrin — kategori değişince key ile sıfırlanır (idx=0) */}
-        <WorkCoverflow key={cat} items={filtered} />
+        {/* Projeler 3D dönen halka — kategori değişince key ile sıfırlanır */}
+        <ProjectsOrbit key={cat} items={filtered} />
       </div>
     </section>
   );

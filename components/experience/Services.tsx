@@ -266,8 +266,11 @@ export function Services() {
           </div>
         </motion.div>
 
-        {/* 3D dönen hizmet halkası */}
-        <ServicesOrbit />
+        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-fr">
+          {services.map((s, i) => (
+            <ServiceCard key={s.n} s={s} i={i} />
+          ))}
+        </div>
       </div>
     </section>
   );
