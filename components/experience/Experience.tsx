@@ -48,9 +48,6 @@ export function Experience() {
   const warp = useRef(0);
   const bgColor = useRef(new THREE.Color("#08090a"));
   const pageBg = useRef<HTMLDivElement>(null);
-  // GEÇİCİ TEŞHİS: ekranda zoom(warp) ve p değerini gösterir — sorunun deploy mu
-  // yoksa tetikleme mi olduğunu anlamak için. Doğrulayınca kaldırılacak.
-  const dbgRef = useRef<HTMLDivElement>(null);
   const headerBlurRef = useRef<HTMLDivElement>(null);
   const [light, setLight] = useState(false);
   // Çark HER CİHAZDA var (temanın kalbi) ama mobilde HAFİFLETİLMİŞ ayarlarla
@@ -149,20 +146,10 @@ export function Experience() {
       // IŞINLANMA ZOOM ilerlemesi: iletişim bölümü ekranın üstüne ~1.1 ekran kala
       // başlar, bölüm tepeye gelince (0.15 ekran kala) tamamlanır → portföyden
       // sonra kaydırınca çark adım adım büyür, iletişimde en büyük halini alır.
-      if (layout.iletisimTop > 0) {
-        const peakY = layout.iletisimTop; // zirve: iletişim bölümü ekranın tepesinde
-        // Yaklaşırken 0→1 (çark büyür), zirveyi geçince 1→0 (çark arkaya çekilip
-        // normal scroll inişine devam eder). Zirvede tam zoom = "havalı geçiş".
-        const up = Math.min(1, Math.max(0, (sy - (peakY - vh * 1.1)) / (vh * 1.1)));
-        const down = Math.min(1, Math.max(0, (sy - peakY) / (vh * 0.9)));
-        warp.current = up * (1 - down);
-      } else {
-        warp.current = 0;
-      }
-
-      if (dbgRef.current) {
-        dbgRef.current.textContent = `zoom ${warp.current.toFixed(2)} · p ${progress.current.toFixed(2)}`;
-      }
+      // ZOOM / tünel efekti şimdilik KAPALI (kullanıcı isteğiyle). warp=0 → çark
+      // her yerde normal davranır. Tekrar açmak için iletişim yaklaşma hesabı
+      // (peakY / up / down) geri getirilir.
+      warp.current = 0;
 
       const enter = smoothstep((vh - (layout.portfoyTop - sy)) / vh);
       const exit = smoothstep((vh - (layout.footerTop - sy)) / (0.55 * vh));
@@ -221,13 +208,6 @@ export function Experience() {
         light ? "text-[#0a0b0c]" : "text-foreground"
       }`}
     >
-      {/* GEÇİCİ teşhis göstergesi — doğrulayınca kaldırılacak */}
-      <div
-        ref={dbgRef}
-        style={{ position: "fixed", top: 8, left: 8, zIndex: 99999, background: "rgba(0,0,0,0.75)", color: "#39ff14", font: "12px monospace", padding: "4px 8px", borderRadius: 6, pointerEvents: "none" }}
-      >
-        zoom —
-      </div>
       {/* Sayfa geçişi — akışkan koyu blur (opacity) + üstte dolma barı + ortada 3D logo.
           (canvas sürekli mount → hitch yok; opak blur → arka sayfa zıplaması gizli) */}
       <div className={`fixed inset-0 z-[90] ${transActive ? "" : "pointer-events-none"}`}>
