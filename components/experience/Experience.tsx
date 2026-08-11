@@ -147,9 +147,12 @@ export function Experience() {
       // başlar, bölüm tepeye gelince (0.15 ekran kala) tamamlanır → portföyden
       // sonra kaydırınca çark adım adım büyür, iletişimde en büyük halini alır.
       if (layout.iletisimTop > 0) {
-        const wStart = layout.iletisimTop - vh * 1.1;
-        const wEnd = layout.iletisimTop - vh * 0.15;
-        warp.current = Math.min(1, Math.max(0, (sy - wStart) / Math.max(1, wEnd - wStart)));
+        const peakY = layout.iletisimTop; // zirve: iletişim bölümü ekranın tepesinde
+        // Yaklaşırken 0→1 (çark büyür), zirveyi geçince 1→0 (çark arkaya çekilip
+        // normal scroll inişine devam eder). Zirvede tam zoom = "havalı geçiş".
+        const up = Math.min(1, Math.max(0, (sy - (peakY - vh * 1.1)) / (vh * 1.1)));
+        const down = Math.min(1, Math.max(0, (sy - peakY) / (vh * 0.9)));
+        warp.current = up * (1 - down);
       } else {
         warp.current = 0;
       }
