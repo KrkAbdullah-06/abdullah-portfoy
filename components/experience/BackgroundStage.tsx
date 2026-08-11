@@ -46,15 +46,21 @@ function GearAssembly({ progress, bgColor, mobile, warp }: { progress: RefObject
     warpS.current += (wt - warpS.current) * (mobile ? 0.2 : 1); // mobilde yumuşat
     const w = warpS.current;
     const zoom = w * w * (3 - 2 * w); // yumuşak geçiş (smoothstep)
-    const zTarget = mobile ? 5.4 : 7.8;  // kameraya (z=11) yaklaşma hedefi
+    const zTarget = mobile ? 11.4 : 12.6; // kamerayı (z=11) GEÇER → çarkın içinden geçiş
 
     // Renk: normalde zemine göre (koyu↔açık gri). AMA zoom sırasında iletişim
     // zemini BEYAZ → açık çark görünmez olurdu. Bu yüzden zoom arttıkça çark
     // KOYULAŞIR → beyaz zeminde dev KOYU çark = net "warp" görünürlüğü.
-    const mat = mesh.current?.material as (THREE.Material & { color?: THREE.Color }) | undefined;
+    const mat = mesh.current?.material as (THREE.Material & { color?: THREE.Color; opacity: number }) | undefined;
     if (mat?.color && bgColor.current) {
       const t = THREE.MathUtils.clamp((bgColor.current.r - 0.03) / 0.9, 0, 1);
       mat.color.copy(gearDark).lerp(gearLight, t * (1 - zoom));
+    }
+    if (mat) {
+      // Çark kameraya çok yaklaşıp GEÇERKEN yavaşça saydamlaşır → katı geometriye
+      // "çarpma" yerine ÇARKIN İÇİNDEN geçerek iletişime varış (tünel hissi).
+      const fade = THREE.MathUtils.clamp((zoom - 0.8) / 0.2, 0, 1);
+      mat.opacity = 1 - fade * 0.92;
     }
 
     g.rotation.z += d * (0.14 + zoom * 0.9); // yaklaşırken hızlanır (savrulma)
@@ -76,9 +82,9 @@ function GearAssembly({ progress, bgColor, mobile, warp }: { progress: RefObject
             atlanabilir, piksel başına maliyet çok düşer, dpr yükseltilebilir.
             Görünüm neredeyse aynı (çark zaten MAT). Masaüstü: tam PBR + env. */}
         {mobile ? (
-          <meshStandardMaterial color={matteSteel.color} metalness={0} roughness={0.92} />
+          <meshStandardMaterial color={matteSteel.color} metalness={0} roughness={0.92} transparent />
         ) : (
-          <meshStandardMaterial {...matteSteel} />
+          <meshStandardMaterial {...matteSteel} transparent />
         )}
       </mesh>
     </group>
