@@ -550,6 +550,129 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
   );
 }
 
+/* ————— Coverflow vitrin kartı (ortadaki büyük, yanlardakiler soluk) ————— */
+function CoverCard({ p, color, active, onSelect }: { p: Project; color: string; active: boolean; onSelect: () => void }) {
+  return (
+    <article
+      onClick={active ? undefined : onSelect}
+      style={{ "--ac": color } as CSSProperties}
+      className={`relative flex h-[380px] flex-col overflow-hidden rounded-2xl border bg-white text-[#141416] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.6)] sm:h-[404px] ${
+        active ? "cursor-default border-white" : "cursor-pointer border-white/45"
+      }`}
+    >
+      {/* görsel alan — kategori rengiyle desenli (henüz gerçek görsel yok) */}
+      <div
+        className="relative h-[52%] overflow-hidden"
+        style={{ background: `radial-gradient(circle at 28% 22%, ${color}55, transparent 60%), radial-gradient(circle at 80% 82%, ${color}2e, transparent 55%), #111214` }}
+      >
+        <div className="absolute left-4 top-4 flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg text-white" style={{ background: color }}>
+            <Icon name={CAT_ICON[p.cat]} size={18} />
+          </div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/85">{p.cat}</span>
+        </div>
+        <span className="absolute right-4 top-4 font-mono text-[11px] tabular-nums text-white/60">{p.year}</span>
+        <span aria-hidden className="pointer-events-none absolute -bottom-7 -right-2 font-display text-[7rem] font-bold leading-none text-white/[0.08]">{p.id}</span>
+      </div>
+
+      {/* içerik */}
+      <div className="flex flex-1 flex-col p-6">
+        <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight">{p.title}</h3>
+        <p className="mt-2 line-clamp-2 text-sm leading-6 text-[#141416]/70">{p.desc}</p>
+        {active && (
+          <a
+            href={p.url ?? "#iletisim"}
+            {...(p.url ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+            className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-semibold"
+            style={{ color }}
+          >
+            {p.url ? "Siteyi aç" : "Projeyi gör"}
+            <span aria-hidden>↗</span>
+          </a>
+        )}
+      </div>
+
+      {active && <span className="absolute bottom-0 left-0 h-[3px] w-full" style={{ background: color }} />}
+    </article>
+  );
+}
+
+/* ————— Coverflow carousel (ok + sayaç + kaydırma) ————— */
+function WorkCoverflow({ items }: { items: Project[] }) {
+  const [idx, setIdx] = useState(0);
+  const n = items.length;
+  const go = (d: number) => setIdx((i) => Math.max(0, Math.min(n - 1, i + d)));
+  const touchX = useRef<number | null>(null);
+
+  if (n === 0) return null;
+
+  return (
+    <div className="mt-12">
+      {/* Sahne — sadece merkeze yakın 5 kart çizilir (mobil dostu) */}
+      <div
+        className="relative mx-auto flex h-[420px] items-center justify-center overflow-hidden sm:h-[460px]"
+        style={{ perspective: "1600px" }}
+        onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          if (touchX.current == null) return;
+          const dx = e.changedTouches[0].clientX - touchX.current;
+          if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+          touchX.current = null;
+        }}
+      >
+        {items.map((p, i) => {
+          const off = i - idx;
+          const abs = Math.abs(off);
+          if (abs > 2) return null;
+          const active = off === 0;
+          return (
+            <div
+              key={p.id}
+              aria-hidden={!active}
+              className="absolute left-1/2 top-1/2 w-[min(86vw,560px)] transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] [will-change:transform]"
+              style={{
+                transform: `translate(-50%,-50%) translateX(${off * 56}%) translateZ(${-abs * 140}px) rotateY(${-off * 22}deg) scale(${1 - abs * 0.13})`,
+                opacity: active ? 1 : abs === 1 ? 0.6 : 0.3,
+                zIndex: 20 - abs,
+                pointerEvents: abs > 1 ? "none" : "auto",
+              }}
+            >
+              <CoverCard p={p} color={CAT_COLOR[p.cat]} active={active} onSelect={() => setIdx(i)} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Kontroller: ok tuşları + sayaç (02 | 10) */}
+      <div className="mt-8 flex items-center justify-center gap-6">
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          disabled={idx === 0}
+          aria-label="Önceki proje"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-current/25 text-lg transition hover:border-current/70 hover:bg-current/10 disabled:opacity-25 disabled:hover:bg-transparent"
+        >
+          <span aria-hidden>‹</span>
+        </button>
+        <div className="flex items-center gap-2.5 font-mono text-sm tabular-nums">
+          <span>{String(idx + 1).padStart(2, "0")}</span>
+          <span className="opacity-30">|</span>
+          <span className="opacity-45">{String(n).padStart(2, "0")}</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          disabled={idx === n - 1}
+          aria-label="Sonraki proje"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-current/25 text-lg transition hover:border-current/70 hover:bg-current/10 disabled:opacity-25 disabled:hover:bg-transparent"
+        >
+          <span aria-hidden>›</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Work() {
   const [cat, setCat] = useState<string>("Tümü");
   const filtered = cat === "Tümü" ? projects : projects.filter((p) => p.cat === cat);
@@ -600,11 +723,8 @@ export function Work() {
             `popLayout` vardı: her filtrede tüm kartların konumu ölçülüp (reflow)
             kaydırılıyordu → mobilde "bağa girme"/takılma. Kaldırıldı; artık tek
             yönlü ucuz bir fade-in var, aynı görünüm ama reflow yok. */}
-        <div key={cat} className="mt-10 grid gap-6 sm:auto-rows-fr sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p, i) => (
-            <ProjectCard key={p.id} p={p} i={i} />
-          ))}
-        </div>
+        {/* Coverflow vitrin — kategori değişince key ile sıfırlanır (idx=0) */}
+        <WorkCoverflow key={cat} items={filtered} />
       </div>
     </section>
   );
