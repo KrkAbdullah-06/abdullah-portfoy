@@ -48,6 +48,9 @@ export function Experience() {
   const warp = useRef(0);
   const bgColor = useRef(new THREE.Color("#08090a"));
   const pageBg = useRef<HTMLDivElement>(null);
+  // GEÇİCİ TEŞHİS: ekranda zoom(warp) ve p değerini gösterir — sorunun deploy mu
+  // yoksa tetikleme mi olduğunu anlamak için. Doğrulayınca kaldırılacak.
+  const dbgRef = useRef<HTMLDivElement>(null);
   const headerBlurRef = useRef<HTMLDivElement>(null);
   const [light, setLight] = useState(false);
   // Çark HER CİHAZDA var (temanın kalbi) ama mobilde HAFİFLETİLMİŞ ayarlarla
@@ -157,6 +160,10 @@ export function Experience() {
         warp.current = 0;
       }
 
+      if (dbgRef.current) {
+        dbgRef.current.textContent = `zoom ${warp.current.toFixed(2)} · p ${progress.current.toFixed(2)}`;
+      }
+
       const enter = smoothstep((vh - (layout.portfoyTop - sy)) / vh);
       const exit = smoothstep((vh - (layout.footerTop - sy)) / (0.55 * vh));
       const t = Math.max(0, Math.min(1, enter - exit));
@@ -214,6 +221,13 @@ export function Experience() {
         light ? "text-[#0a0b0c]" : "text-foreground"
       }`}
     >
+      {/* GEÇİCİ teşhis göstergesi — doğrulayınca kaldırılacak */}
+      <div
+        ref={dbgRef}
+        style={{ position: "fixed", top: 8, left: 8, zIndex: 99999, background: "rgba(0,0,0,0.75)", color: "#39ff14", font: "12px monospace", padding: "4px 8px", borderRadius: 6, pointerEvents: "none" }}
+      >
+        zoom —
+      </div>
       {/* Sayfa geçişi — akışkan koyu blur (opacity) + üstte dolma barı + ortada 3D logo.
           (canvas sürekli mount → hitch yok; opak blur → arka sayfa zıplaması gizli) */}
       <div className={`fixed inset-0 z-[90] ${transActive ? "" : "pointer-events-none"}`}>
