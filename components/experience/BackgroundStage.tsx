@@ -46,15 +46,21 @@ function GearAssembly({ progress, bgColor, mobile }: { progress: RefObject<numbe
 
     // Hareket HER CİHAZDA scroll'a bağlı (PC ile AYNI görünüm) — mobilde de artık
     // akıcı çünkü progress her karede scrollY'den okunuyor.
-    g.rotation.z += d * 0.14;
-    g.rotation.x = 1.0 + Math.sin(p * Math.PI * 3) * 0.6;
+    // İLETİŞİME "IŞINLANMA / ZOOM": scroll son bölüme (p>0.75) gelince çark
+    // merkeze toplanıp kameraya doğru büyür → "Bir fikrin mi var? Hayata
+    // geçirelim." bölümüne çarkın içinden geçerek varış hissi. Adım adım her
+    // kaydırmada ilerler. p<0.75 iken zoom=0 → sitenin geri kalanı AYNEN korunur.
+    const z0 = THREE.MathUtils.clamp((p - 0.75) / 0.25, 0, 1);
+    const zoom = z0 * z0 * (3 - 2 * z0); // yumuşak geçiş (smoothstep)
+    const zTarget = mobile ? 5.4 : 7.8;  // kameraya (z=11) yaklaşma hedefi
+
+    g.rotation.z += d * (0.14 + zoom * 0.85); // yaklaşırken hızlanır (savrulma)
+    g.rotation.x = (1.0 + Math.sin(p * Math.PI * 3) * 0.6) * (1 - zoom);
     g.rotation.y = p * Math.PI * 1.6;
-    g.position.x = Math.sin(p * Math.PI) * 4.4;
-    // Başlangıçta (p=0, siteye giriş anı) çark daha YUKARIDA durur — "ABDULLAH
-    // KIRKIL" başlığının biraz üstünde — böylece ziyaretçi siteye girdiğini
-    // net anlar. Sonra normal seyrinde aşağı iner (bitiş konumu değişmedi).
-    g.position.y = THREE.MathUtils.lerp(2.1, -1.6, p) + Math.sin(p * Math.PI * 3) * 0.9;
-    g.position.z = -3 + Math.sin(p * Math.PI * 2) * 1.6;
+    // Başlangıçta (p=0) çark YUKARIDA durur; zoom sırasında merkeze gelir.
+    g.position.x = Math.sin(p * Math.PI) * 4.4 * (1 - zoom);
+    g.position.y = (THREE.MathUtils.lerp(2.1, -1.6, p) + Math.sin(p * Math.PI * 3) * 0.9) * (1 - zoom);
+    g.position.z = (-3 + Math.sin(p * Math.PI * 2) * 1.6) * (1 - zoom) + zoom * zTarget;
   });
 
   // Mobilde çark KÜÇÜLTÜLÜR (PC/tablet 2.2 aynı kalır). İki fayda: (1) hizmetler

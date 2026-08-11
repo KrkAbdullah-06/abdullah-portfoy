@@ -651,7 +651,7 @@ function WorkCoverflow({ items }: { items: Project[] }) {
             <div
               key={p.id}
               aria-hidden={!active}
-              className="absolute left-1/2 top-1/2 w-[min(90vw,600px)] transition-[transform,opacity] duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] [will-change:transform]"
+              className="absolute left-1/2 top-1/2 w-[74vw] transition-[transform,opacity] duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] [will-change:transform] sm:w-[min(88vw,600px)]"
               style={{
                 transform: `translate(-50%,-50%) translateX(${off * 46}%) translateZ(${-abs * 190}px) rotateY(${-off * 27}deg) scale(${1 - abs * 0.08})`,
                 opacity: active ? 1 : abs === 1 ? 0.72 : 0.4,
