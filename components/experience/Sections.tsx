@@ -623,6 +623,16 @@ function WorkCoverflow({ items }: { items: Project[] }) {
   const n = items.length;
   const go = (d: number) => setIdx((i) => i + d); // sınır yok → sonsuz döner
   const touchX = useRef<number | null>(null);
+  // Mobilde kart daralır + yan kartlar öne çekilir → tek kart değil, iki yanda da
+  // kart görünür. Masaüstünde geniş kartlar korunur.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setNarrow(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   if (n === 0) return null;
   const cur = ((idx % n) + n) % n; // 0..n-1
@@ -684,13 +694,19 @@ function WorkCoverflow({ items }: { items: Project[] }) {
             const abs = Math.abs(off);
             if (abs > 2) return null;
             const active = off === 0;
+            // Mobilde: dar kart + az geri itme → yan kartlar net görünür (peek).
+            const tx = narrow ? 54 : 47; // yana kaydırma (%)
+            const tz = narrow ? 80 : 210; // geriye itme (px)
+            const ry = narrow ? 20 : 26; // eğim (derece)
+            const sc = narrow ? 0.1 : 0.07; // küçülme
             return (
               <div
                 key={p.id}
                 aria-hidden={!active}
-                className="absolute left-1/2 top-1/2 w-[76vw] transition-[transform,opacity] duration-[820ms] ease-[cubic-bezier(0.22,1,0.36,1)] [will-change:transform] sm:w-[min(90vw,660px)]"
+                className="absolute left-1/2 top-1/2 transition-[transform,opacity] duration-[820ms] ease-[cubic-bezier(0.22,1,0.36,1)] [will-change:transform]"
                 style={{
-                  transform: `translate(-50%,-50%) translateX(${off * 47}%) translateZ(${-abs * 210}px) rotateY(${-off * 26}deg) scale(${1 - abs * 0.07})`,
+                  width: narrow ? "62vw" : "min(90vw, 660px)",
+                  transform: `translate(-50%,-50%) translateX(${off * tx}%) translateZ(${-abs * tz}px) rotateY(${-off * ry}deg) scale(${1 - abs * sc})`,
                   opacity: active ? 1 : abs === 1 ? 0.72 : 0.4,
                   zIndex: 20 - abs,
                   pointerEvents: abs > 1 ? "none" : "auto",
