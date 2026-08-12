@@ -572,7 +572,7 @@ function CoverCard({ p, color, active, onSelect }: { p: Project; color: string; 
         if (ref.current) ref.current.style.transform = "";
       }}
       style={{ "--ac": color } as CSSProperties}
-      className={`group/card relative flex h-[420px] flex-col overflow-hidden rounded-[22px] border bg-white text-[#141416] transition-[transform,box-shadow] duration-200 ease-out will-change-transform sm:h-[464px] ${
+      className={`group/card relative flex h-[440px] flex-col overflow-hidden rounded-[22px] border bg-white text-[#141416] transition-[transform,box-shadow] duration-200 ease-out will-change-transform sm:h-[504px] ${
         active
           ? "cursor-default border-white shadow-[0_40px_100px_-36px_var(--ac)]"
           : "cursor-pointer border-white/40 shadow-[0_26px_64px_-32px_rgba(0,0,0,0.7)]"
@@ -617,7 +617,7 @@ function CoverCard({ p, color, active, onSelect }: { p: Project; color: string; 
   );
 }
 
-/* ————— Coverflow carousel — SONSUZ döngü (iki yanda da kart), ok + sayaç ————— */
+/* ————— Coverflow — sonsuz döngü, arka plan ışıması, nokta göstergeleri ————— */
 function WorkCoverflow({ items }: { items: Project[] }) {
   const [idx, setIdx] = useState(0);
   const n = items.length;
@@ -625,55 +625,87 @@ function WorkCoverflow({ items }: { items: Project[] }) {
   const touchX = useRef<number | null>(null);
 
   if (n === 0) return null;
-  const cur = ((idx % n) + n) % n; // 0..n-1 (sayaç için)
+  const cur = ((idx % n) + n) % n; // 0..n-1
+  const activeColor = CAT_COLOR[items[cur].cat];
+
+  // Nokta göstergesine tıklayınca en kısa yoldan o projeye döner.
+  const goTo = (t: number) =>
+    setIdx((i) => {
+      const c = ((i % n) + n) % n;
+      let diff = t - c;
+      if (diff > n / 2) diff -= n;
+      if (diff < -n / 2) diff += n;
+      return i + diff;
+    });
 
   return (
-    <div className="mt-14">
-      {/* Sahne — merkeze yakın 5 kart çizilir; halka mantığıyla iki yanda da kart olur */}
-      <div
-        className="relative mx-auto flex h-[480px] items-center justify-center overflow-hidden sm:h-[544px]"
-        style={{ perspective: "1500px" }}
-        onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
-        onTouchEnd={(e) => {
-          if (touchX.current == null) return;
-          const dx = e.changedTouches[0].clientX - touchX.current;
-          if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
-          touchX.current = null;
-        }}
-      >
+    <div className="mt-12">
+      {/* Nokta göstergeleri — hangi projede olduğun belli olur */}
+      <div className="mb-9 flex flex-wrap items-center justify-center gap-2.5">
         {items.map((p, i) => {
-          // halka üzerindeki en kısa mesafe → baştan da SOL kart görünür
-          let off = (((i - cur) % n) + n) % n;
-          if (off > n / 2) off -= n;
-          const abs = Math.abs(off);
-          if (abs > 2) return null;
-          const active = off === 0;
+          const on = i === cur;
           return (
-            <div
-              key={p.id}
-              aria-hidden={!active}
-              className="absolute left-1/2 top-1/2 w-[74vw] transition-[transform,opacity] duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] [will-change:transform] sm:w-[min(88vw,600px)]"
-              style={{
-                transform: `translate(-50%,-50%) translateX(${off * 46}%) translateZ(${-abs * 190}px) rotateY(${-off * 27}deg) scale(${1 - abs * 0.08})`,
-                opacity: active ? 1 : abs === 1 ? 0.72 : 0.4,
-                zIndex: 20 - abs,
-                pointerEvents: abs > 1 ? "none" : "auto",
-              }}
-            >
-              <CoverCard p={p} color={CAT_COLOR[p.cat]} active={active} onSelect={() => setIdx(idx + off)} />
-            </div>
+            <button key={p.id} type="button" onClick={() => goTo(i)} aria-label={`${i + 1}. projeye git`} className="flex h-4 items-center">
+              <span
+                className="h-1.5 rounded-full transition-all duration-500 ease-out"
+                style={{ width: on ? 28 : 7, background: on ? CAT_COLOR[p.cat] : "currentColor", opacity: on ? 1 : 0.22 }}
+              />
+            </button>
           );
         })}
       </div>
 
+      {/* Sahne + arka plan efekti */}
+      <div className="relative">
+        {/* aktif kategori renginde yumuşak ışıma + ince ızgara derinliği */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div
+            className="absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-[background] duration-700 sm:h-[700px] sm:w-[700px]"
+            style={{ background: `radial-gradient(circle, ${activeColor}33, transparent 62%)` }}
+          />
+          <div className="absolute inset-0 opacity-[0.035] [background-image:linear-gradient(currentColor_1px,transparent_1px),linear-gradient(90deg,currentColor_1px,transparent_1px)] [background-size:44px_44px]" />
+        </div>
+
+        {/* Sahne — merkeze yakın 5 kart; halka mantığıyla iki yanda da kart olur */}
+        <div
+          className="relative mx-auto flex h-[520px] items-center justify-center overflow-hidden sm:h-[600px]"
+          style={{ perspective: "1700px" }}
+          onTouchStart={(e) => (touchX.current = e.touches[0].clientX)}
+          onTouchEnd={(e) => {
+            if (touchX.current == null) return;
+            const dx = e.changedTouches[0].clientX - touchX.current;
+            if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+            touchX.current = null;
+          }}
+        >
+          {items.map((p, i) => {
+            let off = (((i - cur) % n) + n) % n;
+            if (off > n / 2) off -= n;
+            const abs = Math.abs(off);
+            if (abs > 2) return null;
+            const active = off === 0;
+            return (
+              <div
+                key={p.id}
+                aria-hidden={!active}
+                className="absolute left-1/2 top-1/2 w-[76vw] transition-[transform,opacity] duration-[820ms] ease-[cubic-bezier(0.22,1,0.36,1)] [will-change:transform] sm:w-[min(90vw,660px)]"
+                style={{
+                  transform: `translate(-50%,-50%) translateX(${off * 47}%) translateZ(${-abs * 210}px) rotateY(${-off * 26}deg) scale(${1 - abs * 0.07})`,
+                  opacity: active ? 1 : abs === 1 ? 0.72 : 0.4,
+                  zIndex: 20 - abs,
+                  pointerEvents: abs > 1 ? "none" : "auto",
+                }}
+              >
+                <CoverCard p={p} color={CAT_COLOR[p.cat]} active={active} onSelect={() => setIdx(idx + off)} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Kontroller: ok tuşları + sayaç (02 | 10) */}
       <div className="mt-10 flex items-center justify-center gap-6">
-        <button
-          type="button"
-          onClick={() => go(-1)}
-          aria-label="Önceki proje"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-current/25 text-xl transition hover:-translate-x-0.5 hover:border-current/70 hover:bg-current/10 active:scale-95"
-        >
+        <button type="button" onClick={() => go(-1)} aria-label="Önceki proje" className="flex h-12 w-12 items-center justify-center rounded-full border border-current/25 text-xl transition hover:-translate-x-0.5 hover:border-current/70 hover:bg-current/10 active:scale-95">
           <span aria-hidden>‹</span>
         </button>
         <div className="flex items-center gap-2.5 font-mono text-sm tabular-nums">
@@ -681,12 +713,7 @@ function WorkCoverflow({ items }: { items: Project[] }) {
           <span className="opacity-30">|</span>
           <span className="opacity-45">{String(n).padStart(2, "0")}</span>
         </div>
-        <button
-          type="button"
-          onClick={() => go(1)}
-          aria-label="Sonraki proje"
-          className="flex h-12 w-12 items-center justify-center rounded-full border border-current/25 text-xl transition hover:translate-x-0.5 hover:border-current/70 hover:bg-current/10 active:scale-95"
-        >
+        <button type="button" onClick={() => go(1)} aria-label="Sonraki proje" className="flex h-12 w-12 items-center justify-center rounded-full border border-current/25 text-xl transition hover:translate-x-0.5 hover:border-current/70 hover:bg-current/10 active:scale-95">
           <span aria-hidden>›</span>
         </button>
       </div>
@@ -890,8 +917,8 @@ export function Work() {
             `popLayout` vardı: her filtrede tüm kartların konumu ölçülüp (reflow)
             kaydırılıyordu → mobilde "bağa girme"/takılma. Kaldırıldı; artık tek
             yönlü ucuz bir fade-in var, aynı görünüm ama reflow yok. */}
-        {/* Projeler 3D dönen halka — kategori değişince key ile sıfırlanır */}
-        <ProjectsOrbit key={cat} items={filtered} />
+        {/* Coverflow vitrin — kategori değişince key ile sıfırlanır (idx=0) */}
+        <WorkCoverflow key={cat} items={filtered} />
       </div>
     </section>
   );
