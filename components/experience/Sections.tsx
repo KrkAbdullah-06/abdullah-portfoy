@@ -653,7 +653,7 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
 }
 
 /* ————— Coverflow vitrin kartı (ortadaki büyük — mouse ile 3D eğilir) ————— */
-function CoverCard({ p, color, active, onSelect }: { p: Project; color: string; active: boolean; onSelect: () => void }) {
+function CoverCard({ p, color, num, active, onSelect }: { p: Project; color: string; num: string; active: boolean; onSelect: () => void }) {
   const ref = useRef<HTMLElement>(null);
   return (
     <article
@@ -679,25 +679,35 @@ function CoverCard({ p, color, active, onSelect }: { p: Project; color: string; 
           : "cursor-pointer border-white/40 shadow-[0_26px_64px_-32px_rgba(0,0,0,0.7)]"
       }`}
     >
-      {/* görsel alan — kategori rengi deseni + CAD ızgara dokusu (hover'da yakınlaşır) */}
+      {/* görsel alan — her kategoriye özel DEV ikon + zengin gradyan + ışıltı */}
       <div className="relative h-[54%] overflow-hidden">
         <div
-          className="absolute inset-0 transition-transform duration-[650ms] ease-out group-hover/card:scale-[1.06]"
-          style={{ background: `radial-gradient(circle at 28% 20%, ${color}66, transparent 60%), radial-gradient(circle at 82% 84%, ${color}36, transparent 55%), #0f1013` }}
+          className="absolute inset-0 transition-transform duration-[700ms] ease-out group-hover/card:scale-[1.08]"
+          style={{ background: `radial-gradient(120% 95% at 18% 8%, ${color}66, transparent 55%), radial-gradient(110% 110% at 92% 100%, ${color}44, transparent 55%), linear-gradient(140deg, #16181d, #0b0c0f)` }}
         />
-        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-50 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:26px_26px]" />
-        <div className="absolute left-5 top-5 flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl text-white shadow-[0_8px_20px_-6px_var(--ac)]" style={{ background: color }}>
-            <Icon name={CAT_ICON[p.cat]} size={20} />
-          </div>
-          <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/85">{p.cat}</span>
+        {/* ince ızgara doku */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(rgba(255,255,255,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.055)_1px,transparent_1px)] [background-size:30px_30px]" />
+        {/* DEV kategori ikonu — her kategori farklı görünür */}
+        <div aria-hidden className="pointer-events-none absolute -right-5 top-1/2 -translate-y-1/2 transition-transform duration-[700ms] ease-out group-hover/card:scale-110 group-hover/card:-rotate-6" style={{ color, opacity: 0.17 }}>
+          <Icon name={CAT_ICON[p.cat]} size={172} />
         </div>
-        <span className="absolute right-5 top-5 font-mono text-[11px] tabular-nums text-white/55">{p.year}</span>
-        <span aria-hidden className="pointer-events-none absolute -bottom-8 -right-1 font-display text-[8rem] font-bold leading-none text-white/[0.09]">{p.id}</span>
+        {/* çapraz ışıltı */}
+        <div aria-hidden className="pointer-events-none absolute inset-0 [background:linear-gradient(120deg,rgba(255,255,255,0.09),transparent_42%)]" />
+        {/* üst: kategori rozeti + yıl */}
+        <div className="absolute left-5 top-5 flex items-center gap-2.5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-[0_10px_24px_-6px_var(--ac)]" style={{ background: color }}>
+            <Icon name={CAT_ICON[p.cat]} size={22} />
+          </div>
+          <span className="rounded-full bg-black/30 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">{p.cat}</span>
+        </div>
+        <span className="absolute right-5 top-5 rounded-full bg-black/30 px-2.5 py-1 font-mono text-[10px] tabular-nums text-white/75 backdrop-blur-sm">{p.year}</span>
+        {/* dev numara (sıra) */}
+        <span aria-hidden className="pointer-events-none absolute -bottom-7 left-3 font-display text-[7rem] font-bold leading-none text-white/[0.12]">{num}</span>
       </div>
 
       {/* içerik */}
       <div className="relative flex flex-1 flex-col p-7">
+        <span className="mb-1.5 h-[3px] w-9 rounded-full" style={{ background: color }} />
         <h3 className="font-display text-2xl font-semibold leading-tight tracking-tight sm:text-[1.7rem]">{p.title}</h3>
         <p className="mt-2.5 line-clamp-2 text-sm leading-6 text-[#141416]/70">{p.desc}</p>
         {active && (
@@ -813,7 +823,7 @@ function WorkCoverflow({ items }: { items: Project[] }) {
                   pointerEvents: abs > 1 ? "none" : "auto",
                 }}
               >
-                <CoverCard p={p} color={CAT_COLOR[p.cat]} active={active} onSelect={() => setIdx(idx + off)} />
+                <CoverCard p={p} color={CAT_COLOR[p.cat]} num={String(i + 1).padStart(2, "0")} active={active} onSelect={() => setIdx(idx + off)} />
               </div>
             );
           })}
