@@ -4,13 +4,15 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [projects, socials] = await Promise.all([
+  const [projects, servicesCount, socials] = await Promise.all([
     prisma.project.count(),
+    prisma.service.count(),
     prisma.socialLink.count(),
   ]);
 
   const cards = [
     { href: "/admin/projeler", title: "Projeler", desc: `${projects} proje · ekle, düzenle, sil`, emoji: "🗂️" },
+    { href: "/admin/hizmetler", title: "Hizmetler", desc: `${servicesCount} hizmet · Ne yapıyorum`, emoji: "🛠️" },
     { href: "/admin/hakkimda", title: "Hakkımda", desc: "Başlık ve yazıyı düzenle", emoji: "✏️" },
     { href: "/admin/iletisim", title: "İletişim", desc: `${socials} sosyal link · iletişim bilgileri`, emoji: "📱" },
   ];

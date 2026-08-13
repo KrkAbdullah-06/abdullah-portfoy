@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LogoSpin3D } from "./LogoSpin3D";
 import { Icon } from "./Services";
 import { AKMark } from "@/components/brand/AKMark";
@@ -118,6 +118,31 @@ const LINE_META = (() => {
 const TOTAL_CHARS = LINE_META.length ? LINE_META[LINE_META.length - 1].start + LINE_META[LINE_META.length - 1].cost : 0;
 const MS_PER_CHAR = 15; // ~66 karakter/sn — gerçek daktilo hissi
 
+type LineMeta = { start: number; real: number; cost: number };
+function computeMeta(lines: Seg[][]): { meta: LineMeta[]; total: number } {
+  let offset = 0;
+  const meta = lines.map((segs) => {
+    const real = segs.reduce((s, seg) => s + seg.text.length, 0);
+    const cost = real === 0 ? 3 : real;
+    const start = offset;
+    offset += cost;
+    return { start, real, cost };
+  });
+  return { meta, total: offset };
+}
+
+// Admin'deki "Hakkımda yazısı" (aboutBody) varsa, kod editörünün SONUNA bir
+// yorum satırı olarak eklenir → daktilo animasyonuna dahil olur, admin'den
+// düzenlenebilir. Boşsa kod olduğu gibi kalır.
+function buildCode(aboutBody?: string | null): { lines: Seg[][]; meta: LineMeta[]; total: number } {
+  const lines =
+    aboutBody && aboutBody.trim()
+      ? [...CODE_LINES, [], [{ cls: CM, text: "// " + aboutBody.trim() }]]
+      : CODE_LINES;
+  const { meta, total } = computeMeta(lines);
+  return { lines, meta, total };
+}
+
 function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[]; budget: number; started: boolean; cursor: boolean }) {
   if (!started) return null;
   let remaining = budget;
@@ -146,8 +171,8 @@ function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[];
 
 // typed = şu ana kadar "yazılan" toplam karakter (0..TOTAL_CHARS). Kod bu
 // sayıya göre satır satır, karakter karakter ekrana gelir (gerçek daktilo).
-function AboutCode({ typed }: { typed: number }) {
-  const typingDone = typed >= TOTAL_CHARS;
+function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_CHARS }: { typed: number; lines?: Seg[][]; meta?: LineMeta[]; total?: number }) {
+  const typingDone = typed >= total;
   const [text, setText] = useState(ROLES[0]);
   const [ri, setRi] = useState(0);
   const [del, setDel] = useState(false);
@@ -186,11 +211,11 @@ function AboutCode({ typed }: { typed: number }) {
 
       {/* kod gövdesi — hakkımda metninin TAMAMI kodun İÇİNDE, sıfırdan yazılıyor */}
       <div className="overflow-x-auto px-4 py-5 font-mono text-[12.5px] leading-[1.85] sm:text-[13.5px]">
-        {CODE_LINES.map((segs, i) => {
-          const meta = LINE_META[i];
-          const started = typed >= meta.start;
-          const budget = Math.max(0, Math.min(meta.real, typed - meta.start));
-          const active = typed >= meta.start && typed < meta.start + meta.cost;
+        {lines.map((segs, i) => {
+          const m = meta[i];
+          const started = typed >= m.start;
+          const budget = Math.max(0, Math.min(m.real, typed - m.start));
+          const active = typed >= m.start && typed < m.start + m.cost;
 
           if (i === ROL_LINE && typingDone) {
             // yazım bitti → rol satırı canlı typewriter döngüsüne geçer
@@ -216,7 +241,7 @@ function AboutCode({ typed }: { typed: number }) {
       <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap border-t border-white/10 bg-[#15171b] px-4 py-2 font-mono text-[9px] text-white/40 sm:gap-4 sm:text-[10px]">
         <span className="flex shrink-0 items-center gap-1.5 text-[#7aa2f7]">⎇ main</span>
         <span className="shrink-0">{typingDone ? "TypeScript React" : "Yazılıyor…"}</span>
-        <span className="ml-auto shrink-0">UTF-8 · Ln {Math.min(CODE_LINES.length, LINE_META.findIndex((m) => typed < m.start + m.cost) + 1 || CODE_LINES.length)}</span>
+        <span className="ml-auto shrink-0">UTF-8 · Ln {Math.min(lines.length, meta.findIndex((m) => typed < m.start + m.cost) + 1 || lines.length)}</span>
       </div>
     </div>
   );
@@ -228,6 +253,8 @@ export function About({ about }: { about?: { kicker: string; title: string; body
   const [typed, setTyped] = useState(0); // "yazılmış" karakter sayısı (0..TOTAL_CHARS)
   const buildRef = useRef(0); // logo montaj ilerlemesi (0..1) — LogoSpin3D okur
   const secRef = useRef<HTMLElement>(null);
+  // Admin'deki "Hakkımda yazısı" kod editörüne yorum olarak eklenir (düzenlenebilir).
+  const { lines: codeLines, meta: codeMeta, total: codeTotal } = useMemo(() => buildCode(about?.body), [about?.body]);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
@@ -252,9 +279,9 @@ export function About({ about }: { about?: { kicker: string; title: string; body
     let lastSet = 0;
     const tick = (t: number) => {
       if (!t0) t0 = t;
-      const chars = Math.min(TOTAL_CHARS, Math.floor((t - t0) / MS_PER_CHAR));
-      buildRef.current = TOTAL_CHARS ? chars / TOTAL_CHARS : 1;
-      const done = chars >= TOTAL_CHARS;
+      const chars = Math.min(codeTotal, Math.floor((t - t0) / MS_PER_CHAR));
+      buildRef.current = codeTotal ? chars / codeTotal : 1;
+      const done = chars >= codeTotal;
       // MOBİL PERFORMANS: bio metni uzun olduğundan yazım ~15-20 saniye sürüyor;
       // bu sürede React state'i (setTyped) her karede güncellemek 60/sn yeniden
       // render demek — 3D logonun WebGL render'ıyla AYNI ANDA ana iş parçacığını
@@ -270,7 +297,7 @@ export function About({ about }: { about?: { kicker: string; title: string; body
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [inView, mobile]);
+  }, [inView, mobile, codeTotal]);
 
   return (
     <section id="hakkimda" ref={secRef} className="relative px-6 py-32 sm:px-10">
@@ -306,7 +333,7 @@ export function About({ about }: { about?: { kicker: string; title: string; body
               min-w-0: uzun (sarmalanmamış) bir satır olsa bile grid sütunu kendi
               fr payının ötesine BÜYÜMEZ (eskiden yazarken paneller genişliyordu). */}
           <R delay={0.15} className="min-w-0">
-            <AboutCode typed={typed} />
+            <AboutCode typed={typed} lines={codeLines} meta={codeMeta} total={codeTotal} />
           </R>
         </div>
 

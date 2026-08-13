@@ -393,7 +393,16 @@ export function Experience({ data }: { data?: SiteData } = {}) {
       <About about={data?.about} />
 
       {/* Hizmetler */}
-      <Services />
+      <Services
+        items={data?.services.map((s, i) => ({
+          n: String(i + 1).padStart(2, "0"),
+          title: s.title,
+          desc: s.description,
+          icon: s.icon,
+          color: s.color,
+          tools: s.tools,
+        }))}
+      />
 
       {/* Süreç */}
       <Process />

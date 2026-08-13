@@ -28,6 +28,15 @@ const socials = [
   { name: "WhatsApp", icon: "whatsapp", href: "https://wa.me/905539525051?text=Merhaba%20Abdullah%2C%20web%20sitenizden%20yaz%C4%B1yorum." },
 ];
 
+const services = [
+  { title: "3D & Mekanik Tasarım", description: "SolidWorks ve AutoCAD ile parça ve ürün tasarlıyorum: 3D modelleme, montaj ve üretime hazır teknik resim.", icon: "cube", color: "#e0a94a", tools: ["SolidWorks", "AutoCAD", "Fusion 360", "Teknik Resim"] },
+  { title: "CNC Üretim Hazırlığı", description: "AutoCAD ve SolidCAM ile tezgahın izleyeceği yolu çıkarıp makinenin anlayacağı komutları (G-code) üretiyorum.", icon: "cnc", color: "#6fb7d9", tools: ["SolidCAM", "AutoCAD", "G-Code", "CAM"] },
+  { title: "Video Prodüksiyon", description: "Çekimden kurguya: sinematik montaj, renk düzenleme ve ses tasarımıyla akılda kalıcı içerik.", icon: "film", color: "#d98a5a", tools: ["Premiere Pro", "After Effects", "DaVinci"] },
+  { title: "Sosyal Medya Yönetimi", description: "İçerik, reels ve reklam yönetimiyle (Meta Ads) hesabını düzenler, doğru kitleye ulaştırır ve markanı öne çıkarırım.", icon: "share", color: "#b58cd9", tools: ["Meta Ads", "Reels", "İçerik"] },
+  { title: "Web Geliştirme", description: "Sıfırdan, uçtan uca profesyonel web siteleri: hızlı, modern, SEO uyumlu — tıpkı şu an gezdiğin bu site gibi.", icon: "code", color: "#5fd9a8", tools: ["Next.js", "React", "Three.js", "Tailwind"] },
+  { title: "Mobil Uygulama & Otomasyon", description: "iOS ve Android için modern mobil uygulamalar ve tekrarlayan işleri otomatikleştiren akıllı sistemler kuruyorum — tasarımdan yayına, tek elden.", icon: "mobile", color: "#7b8cf5", tools: ["React Native", "Flutter", "Python", "Otomasyon"] },
+];
+
 async function main() {
   // Admin kullanıcı
   const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
@@ -67,6 +76,14 @@ async function main() {
   if (socialCount === 0) {
     await prisma.socialLink.createMany({
       data: socials.map((s, i) => ({ ...s, order: i })),
+    });
+  }
+
+  // Hizmetler (yalnızca boşsa)
+  const serviceCount = await prisma.service.count();
+  if (serviceCount === 0) {
+    await prisma.service.createMany({
+      data: services.map((s, i) => ({ ...s, order: i })),
     });
   }
 

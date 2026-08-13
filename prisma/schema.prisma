@@ -32,6 +32,18 @@ model Project {
   updatedAt   DateTime @updatedAt
 }
 
+// "Ne yapıyorum" (Hizmetler) — admin'den eklenip düzenlenir
+model Service {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  icon        String   // cube | cnc | film | share | code | mobile
+  color       String   // #e0a94a gibi
+  tools       String[] // araçlar (SolidWorks, AutoCAD...)
+  order       Int      @default(0)
+  published   Boolean  @default(true)
+}
+
 // İletişimdeki sosyal/uygulama linkleri — admin'den düzenlenir
 model SocialLink {
   id      String  @id @default(cuid())

@@ -254,7 +254,9 @@ function ServicesOrbit() {
   );
 }
 
-export function Services() {
+export function Services({ items }: { items?: Service[] } = {}) {
+  // DB'den gelen hizmetler (admin'den yönetilir); boşsa sabit listeye düşer.
+  const data = items && items.length > 0 ? items : services;
   return (
     <section id="hizmetler" className="relative px-6 py-28 sm:px-10">
       <div className="mx-auto max-w-6xl">
@@ -267,7 +269,7 @@ export function Services() {
         </motion.div>
 
         <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-fr">
-          {services.map((s, i) => (
+          {data.map((s, i) => (
             <ServiceCard key={s.n} s={s} i={i} />
           ))}
         </div>

@@ -9,8 +9,10 @@ export type PublicProject = {
   url: string | null;
 };
 export type PublicSocial = { name: string; icon: string; href: string };
+export type PublicService = { title: string; description: string; icon: string; color: string; tools: string[] };
 export type SiteData = {
   projects: PublicProject[];
+  services: PublicService[];
   about: { kicker: string; title: string; body: string | null };
   contact: { email: string; phone: string; whatsapp: string; location: string };
   socials: PublicSocial[];
@@ -30,6 +32,14 @@ const FALLBACK: SiteData = {
     { id: "09", title: "Google Maps Scraper", category: "Mobil & Otomasyon", year: "2024", description: "Google Haritalar'dan işletme verilerini (isim, telefon, adres) otomatik toplayan veri kazıma aracı.", url: null },
     { id: "10", title: "Trendyol Ürün Scraper", category: "Mobil & Otomasyon", year: "2024", description: "Trendyol ürün bilgilerini otomatik çeken, fiyat ve stok takibi yapan otomasyon aracı.", url: null },
   ],
+  services: [
+    { title: "3D & Mekanik Tasarım", description: "SolidWorks ve AutoCAD ile parça ve ürün tasarlıyorum: 3D modelleme, montaj ve üretime hazır teknik resim.", icon: "cube", color: "#e0a94a", tools: ["SolidWorks", "AutoCAD", "Fusion 360", "Teknik Resim"] },
+    { title: "CNC Üretim Hazırlığı", description: "AutoCAD ve SolidCAM ile tezgahın izleyeceği yolu çıkarıp makinenin anlayacağı komutları (G-code) üretiyorum.", icon: "cnc", color: "#6fb7d9", tools: ["SolidCAM", "AutoCAD", "G-Code", "CAM"] },
+    { title: "Video Prodüksiyon", description: "Çekimden kurguya: sinematik montaj, renk düzenleme ve ses tasarımıyla akılda kalıcı içerik.", icon: "film", color: "#d98a5a", tools: ["Premiere Pro", "After Effects", "DaVinci"] },
+    { title: "Sosyal Medya Yönetimi", description: "İçerik, reels ve reklam yönetimiyle (Meta Ads) hesabını düzenler, doğru kitleye ulaştırır ve markanı öne çıkarırım.", icon: "share", color: "#b58cd9", tools: ["Meta Ads", "Reels", "İçerik"] },
+    { title: "Web Geliştirme", description: "Sıfırdan, uçtan uca profesyonel web siteleri: hızlı, modern, SEO uyumlu — tıpkı şu an gezdiğin bu site gibi.", icon: "code", color: "#5fd9a8", tools: ["Next.js", "React", "Three.js", "Tailwind"] },
+    { title: "Mobil Uygulama & Otomasyon", description: "iOS ve Android için modern mobil uygulamalar ve tekrarlayan işleri otomatikleştiren akıllı sistemler kuruyorum — tasarımdan yayına, tek elden.", icon: "mobile", color: "#7b8cf5", tools: ["React Native", "Flutter", "Python", "Otomasyon"] },
+  ],
   about: { kicker: "Hakkımda", title: "Öğrenci ruhu, profesyonel işçilik.", body: null },
   contact: { email: "kirkilabdullah33@gmail.com", phone: "0553 952 50 51", whatsapp: "https://wa.me/905539525051", location: "Ankara / Niğde" },
   socials: [
@@ -43,8 +53,9 @@ const FALLBACK: SiteData = {
 
 export async function getSiteData(): Promise<SiteData> {
   try {
-    const [projects, content, socials] = await Promise.all([
+    const [projects, services, content, socials] = await Promise.all([
       prisma.project.findMany({ where: { published: true }, orderBy: { order: "asc" } }),
+      prisma.service.findMany({ where: { published: true }, orderBy: { order: "asc" } }),
       prisma.siteContent.findUnique({ where: { id: "main" } }),
       prisma.socialLink.findMany({ where: { enabled: true }, orderBy: { order: "asc" } }),
     ]);
@@ -53,6 +64,9 @@ export async function getSiteData(): Promise<SiteData> {
       projects: projects.length
         ? projects.map((p) => ({ id: p.id, title: p.title, category: p.category, year: p.year, description: p.description, url: p.url }))
         : FALLBACK.projects,
+      services: services.length
+        ? services.map((s) => ({ title: s.title, description: s.description, icon: s.icon, color: s.color, tools: s.tools }))
+        : FALLBACK.services,
       about: {
         kicker: content?.aboutKicker || FALLBACK.about.kicker,
         title: content?.aboutTitle || FALLBACK.about.title,
