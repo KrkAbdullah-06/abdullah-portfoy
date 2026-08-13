@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { saveAbout } from "./actions";
+import { SaveButton } from "../SaveButton";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export default async function HakkimdaPage() {
             <textarea name="aboutBody" defaultValue={c?.aboutBody ?? ""} rows={7} className={input} />
           </div>
         </div>
-        <button className="mt-6 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</button>
+        <SaveButton className="mt-6 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</SaveButton>
       </form>
     </div>
   );

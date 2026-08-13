@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authOptions } from "@/lib/auth";
 import { SignOut } from "./SignOut";
+import { AdminToaster } from "./AdminToaster";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </div>
       </header>
       <main className="mx-auto max-w-5xl px-5 py-8">{children}</main>
+      <AdminToaster />
     </div>
   );
 }

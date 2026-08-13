@@ -280,9 +280,6 @@ export function About({ about }: { about?: { kicker: string; title: string; body
           <h2 className="max-w-3xl font-display text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
             {about?.title ?? "Öğrenci ruhu, profesyonel işçilik."}
           </h2>
-          {about?.body ? (
-            <p className="mt-6 max-w-2xl text-base leading-7 opacity-70 sm:text-lg">{about.body}</p>
-          ) : null}
         </R>
 
         <div className="mt-14 grid gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">

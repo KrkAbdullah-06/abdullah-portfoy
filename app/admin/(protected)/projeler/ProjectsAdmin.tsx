@@ -68,7 +68,7 @@ export function ProjectsAdmin({ projects }: { projects: P[] }) {
         <form action={createProject} className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
           <h2 className="mb-4 font-semibold">Yeni proje ekle</h2>
           <Fields />
-          <button className="mt-5 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Ekle</button>
+          <button onClick={() => window.dispatchEvent(new CustomEvent("admin:saved"))} className="mt-5 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Ekle</button>
         </form>
       )}
 
@@ -80,7 +80,7 @@ export function ProjectsAdmin({ projects }: { projects: P[] }) {
                 <input type="hidden" name="id" value={p.id} />
                 <Fields p={p} />
                 <div className="mt-5 flex gap-2">
-                  <button className="rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</button>
+                  <button onClick={() => window.dispatchEvent(new CustomEvent("admin:saved"))} className="rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</button>
                   <button
                     type="button"
                     onClick={() => setEditing(null)}

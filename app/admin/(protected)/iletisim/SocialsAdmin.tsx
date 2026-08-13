@@ -61,7 +61,7 @@ export function SocialsAdmin({ socials }: { socials: S[] }) {
       {adding && (
         <form action={createSocial} className="mt-5 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
           <Fields />
-          <button className="mt-5 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Ekle</button>
+          <button onClick={() => window.dispatchEvent(new CustomEvent("admin:saved"))} className="mt-5 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Ekle</button>
         </form>
       )}
 
@@ -73,7 +73,7 @@ export function SocialsAdmin({ socials }: { socials: S[] }) {
                 <input type="hidden" name="id" value={s.id} />
                 <Fields s={s} />
                 <div className="mt-5 flex gap-2">
-                  <button className="rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</button>
+                  <button onClick={() => window.dispatchEvent(new CustomEvent("admin:saved"))} className="rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</button>
                   <button type="button" onClick={() => setEditing(null)} className="rounded-lg border border-white/15 px-5 py-2 text-sm text-white/70 transition hover:bg-white/5">
                     İptal
                   </button>

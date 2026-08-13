@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { saveContact } from "./actions";
 import { SocialsAdmin } from "./SocialsAdmin";
+import { SaveButton } from "../SaveButton";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,7 @@ export default async function IletisimPage() {
             <input name="contactLocation" defaultValue={c?.contactLocation ?? ""} placeholder="Ankara / Niğde" className={input} />
           </div>
         </div>
-        <button className="mt-6 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</button>
+        <SaveButton className="mt-6 rounded-lg bg-white px-5 py-2 text-sm font-semibold text-black transition hover:bg-white/90">Kaydet</SaveButton>
       </form>
 
       {/* Sosyal linkler */}
