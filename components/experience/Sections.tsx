@@ -363,7 +363,7 @@ export function About({
       // Ekran güncellemesi ~20/sn'ye seyreltilir — YAZIM HIZI (MS_PER_CHAR) HİÇ
       // DEĞİŞMEZ, sadece birkaç karakter birden görünür (göz farketmez), toplam
       // süre ve nihai görünüm birebir aynı kalır.
-      if (!mobile || done || t - lastSet >= 50) {
+      if (!mobile || done || t - lastSet >= 110) {
         lastSet = t;
         setTyped((cur) => (cur !== chars ? chars : cur));
       }

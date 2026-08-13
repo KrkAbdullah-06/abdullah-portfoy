@@ -104,8 +104,8 @@ function FpsCap({ fps }: { fps: number }) {
 // build → kirişlerin oluşma ilerlemesi (0..1); verilmezse logo tam kurulu görünür.
 export function LogoSpin3D({ active = true, mobile = false, build }: { active?: boolean; mobile?: boolean; build?: RefObject<number> }) {
   return (
-    <Canvas frameloop={active ? (mobile ? "demand" : "always") : "never"} camera={{ position: [0, 0, 10.5], fov: 42 }} dpr={mobile ? [1, 2] : [1, 1.75]} gl={{ antialias: true, powerPreference: "low-power" }}>
-      {active && mobile && <FpsCap fps={24} />}
+    <Canvas frameloop={active ? (mobile ? "demand" : "always") : "never"} camera={{ position: [0, 0, 10.5], fov: 42 }} dpr={mobile ? 1 : [1, 1.75]} gl={{ antialias: !mobile, powerPreference: "low-power" }}>
+      {active && mobile && <FpsCap fps={18} />}
       <ambientLight intensity={0.4} />
       <directionalLight position={[4, 6, 5]} intensity={1.2} />
       <Logo build={build} />
