@@ -9,6 +9,7 @@ import { CadIntro } from "./CadIntro";
 import { Marquee, About, Process, Work } from "./Sections";
 import { AKMark } from "@/components/brand/AKMark";
 import { ContactPanel } from "./ContactPanel";
+import type { SiteData } from "@/lib/content";
 
 const BackgroundStage = dynamic(
   () => import("./BackgroundStage").then((m) => m.BackgroundStage),
@@ -37,7 +38,7 @@ const reveal = {
 const linkFx =
   "relative inline-block py-0.5 transition-[opacity,transform] duration-200 hover:-translate-y-0.5 hover:opacity-100 active:translate-y-0 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-full after:origin-left after:scale-x-0 after:rounded-full after:bg-current after:transition-transform after:duration-300 after:ease-out hover:after:scale-x-100";
 
-export function Experience() {
+export function Experience({ data }: { data?: SiteData } = {}) {
   const progress = useRef(0);
   // Açılış (CadIntro) ekranı ekranı OPAK kaplarken arkadaki 3D çark GÖRÜNMEZ ama
   // yine de çiziliyordu (mobilde en büyük israf). Bu bayrak, çark görünür hale
@@ -389,7 +390,7 @@ export function Experience() {
       </section>
 
       {/* Hakkımda */}
-      <About />
+      <About about={data?.about} />
 
       {/* Hizmetler */}
       <Services />
@@ -398,7 +399,16 @@ export function Experience() {
       <Process />
 
       {/* Portföy (görselli ızgara) */}
-      <Work />
+      <Work
+        items={data?.projects.map((p) => ({
+          id: p.id,
+          title: p.title,
+          cat: p.category,
+          year: p.year,
+          desc: p.description,
+          url: p.url ?? undefined,
+        }))}
+      />
 
       {/* İletişim — sinematik CTA */}
       <section id="iletisim" className="relative flex min-h-[88vh] flex-col justify-center px-6 py-24 sm:px-10">
@@ -452,7 +462,7 @@ export function Experience() {
           </motion.div>
 
           {/* mesaj formu + sosyal hesaplar */}
-          <ContactPanel />
+          <ContactPanel socials={data?.socials} />
         </div>
       </section>
 

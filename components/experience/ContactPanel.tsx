@@ -48,7 +48,9 @@ const field =
   "w-full rounded-xl border border-white/25 bg-white/[0.06] px-4 py-3 text-base text-[#f4f5f6] outline-none transition-colors placeholder:text-white/45 focus:border-white/70 focus:bg-white/[0.1]";
 const label = "mb-1.5 block font-mono text-[11px] uppercase tracking-[0.25em] text-white/70";
 
-export function ContactPanel() {
+export function ContactPanel({ socials }: { socials?: { name: string; icon: string; href: string }[] } = {}) {
+  // DB'den gelen sosyal linkler (admin'den yönetilir); boşsa sabit listeye düşer.
+  const links = socials && socials.length > 0 ? socials : SOCIALS;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -105,7 +107,7 @@ export function ContactPanel() {
         <p className="mt-2 text-sm text-white/70">İşlerimi ve güncellemeleri buradan görebilirsin.</p>
 
         <ul className="mt-8 space-y-2">
-          {SOCIALS.map((s) => (
+          {links.map((s) => (
             <li key={s.name}>
               <a
                 href={s.href}

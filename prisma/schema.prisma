@@ -1,0 +1,56 @@
+// Portföy sitesi veritabanı şeması (Neon PostgreSQL).
+// Admin panelinden yönetilen içerikler burada tutulur.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Admin girişi (NextAuth Credentials)
+model AdminUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+// Seçili işler — admin'den kategorili eklenip düzenlenir
+model Project {
+  id          String   @id @default(cuid())
+  title       String
+  category    String
+  year        String
+  description  String  @db.Text
+  url         String?  // canlı site linki (varsa)
+  order       Int      @default(0)
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// İletişimdeki sosyal/uygulama linkleri — admin'den düzenlenir
+model SocialLink {
+  id      String  @id @default(cuid())
+  name    String  // LinkedIn, Instagram, WhatsApp...
+  icon    String  // ikon anahtarı: linkedin | instagram | github | briefcase | whatsapp
+  href    String  // link
+  order   Int     @default(0)
+  enabled Boolean @default(true)
+}
+
+// Tekil site içeriği (Hakkımda + iletişim bilgileri) — id = "main"
+model SiteContent {
+  id             String   @id @default("main")
+  aboutKicker    String?  // "Hakkımda"
+  aboutTitle     String?  // "Öğrenci ruhu, profesyonel işçilik."
+  aboutBody      String?  @db.Text // hakkımda yazısı (bio)
+  contactEmail   String?
+  contactPhone   String?
+  contactWhatsapp String?
+  contactLocation String?
+  updatedAt      DateTime @updatedAt
+}

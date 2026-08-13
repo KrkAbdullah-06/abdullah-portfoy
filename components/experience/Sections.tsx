@@ -222,7 +222,7 @@ function AboutCode({ typed }: { typed: number }) {
   );
 }
 
-export function About() {
+export function About({ about }: { about?: { kicker: string; title: string; body: string | null } } = {}) {
   const [mobile, setMobile] = useState(false);
   const [inView, setInView] = useState(false);
   const [typed, setTyped] = useState(0); // "yazılmış" karakter sayısı (0..TOTAL_CHARS)
@@ -276,10 +276,13 @@ export function About() {
     <section id="hakkimda" ref={secRef} className="relative px-6 py-32 sm:px-10">
       <div className="mx-auto max-w-6xl">
         <R>
-          <span className="mb-3 block text-xs uppercase tracking-[0.4em] opacity-50">Hakkımda</span>
+          <span className="mb-3 block text-xs uppercase tracking-[0.4em] opacity-50">{about?.kicker ?? "Hakkımda"}</span>
           <h2 className="max-w-3xl font-display text-4xl font-bold leading-tight tracking-tight sm:text-6xl">
-            Öğrenci ruhu, profesyonel işçilik.
+            {about?.title ?? "Öğrenci ruhu, profesyonel işçilik."}
           </h2>
+          {about?.body ? (
+            <p className="mt-6 max-w-2xl text-base leading-7 opacity-70 sm:text-lg">{about.body}</p>
+          ) : null}
         </R>
 
         <div className="mt-14 grid gap-12 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
@@ -883,10 +886,13 @@ function ProjectsOrbit({ items }: { items: Project[] }) {
   );
 }
 
-export function Work() {
+export function Work({ items }: { items?: Project[] } = {}) {
+  // DB'den gelen projeler (admin panelinden yönetilir); boşsa sabit listeye düşer.
+  const data = items && items.length > 0 ? items : projects;
   const [cat, setCat] = useState<string>("Tümü");
-  const filtered = cat === "Tümü" ? projects : projects.filter((p) => p.cat === cat);
-  const countOf = (c: string) => (c === "Tümü" ? projects.length : projects.filter((p) => p.cat === c).length);
+  const filtered = cat === "Tümü" ? data : data.filter((p) => p.cat === cat);
+  const countOf = (c: string) => (c === "Tümü" ? data.length : data.filter((p) => p.cat === c).length);
+  const activeCats = CATEGORIES.filter((c) => c === "Tümü" || data.some((p) => p.cat === c));
 
   return (
     <section id="portfoy" className="relative px-6 py-28 sm:px-10">
@@ -904,7 +910,7 @@ export function Work() {
           <div className="mt-12 border-b border-current/15 pb-10">
             <span className="mb-4 block font-mono text-[11px] uppercase tracking-[0.3em] opacity-50">Kategori</span>
             <div className="flex flex-wrap gap-2.5">
-              {activeCategories.map((c) => {
+              {activeCats.map((c) => {
                 const on = cat === c;
                 return (
                   <button
