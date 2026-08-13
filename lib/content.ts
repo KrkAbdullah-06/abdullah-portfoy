@@ -13,7 +13,19 @@ export type PublicService = { title: string; description: string; icon: string; 
 export type SiteData = {
   projects: PublicProject[];
   services: PublicService[];
-  about: { kicker: string; title: string; body: string | null };
+  about: {
+    kicker: string;
+    title: string;
+    body: string | null;
+    name: string;
+    school: string;
+    loc: string;
+    comment1: string;
+    comment2: string;
+    comment3: string;
+    vision: string;
+    status: string;
+  };
   contact: { email: string; phone: string; whatsapp: string; location: string };
   socials: PublicSocial[];
 };
@@ -40,7 +52,19 @@ const FALLBACK: SiteData = {
     { title: "Web Geliştirme", description: "Sıfırdan, uçtan uca profesyonel web siteleri: hızlı, modern, SEO uyumlu — tıpkı şu an gezdiğin bu site gibi.", icon: "code", color: "#5fd9a8", tools: ["Next.js", "React", "Three.js", "Tailwind"] },
     { title: "Mobil Uygulama & Otomasyon", description: "iOS ve Android için modern mobil uygulamalar ve tekrarlayan işleri otomatikleştiren akıllı sistemler kuruyorum — tasarımdan yayına, tek elden.", icon: "mobile", color: "#7b8cf5", tools: ["React Native", "Flutter", "Python", "Otomasyon"] },
   ],
-  about: { kicker: "Hakkımda", title: "Öğrenci ruhu, profesyonel işçilik.", body: null },
+  about: {
+    kicker: "Hakkımda",
+    title: "Öğrenci ruhu, profesyonel işçilik.",
+    body: null,
+    name: "Abdullah Kırkıl",
+    school: "Gazi Üniversitesi · MIS · 4. sınıf",
+    loc: "Ankara / Niğde",
+    comment1: "Bilişim ve yönetim disiplinlerinin kesişim noktasında, teknolojiyi iş süreçlerine entegre etme vizyonuyla hareket ediyorum.",
+    comment2: "Akademik eğitimimin yanı sıra, Nimak Makina Mühendislik çatısı altında stajyerlikle adım attığım kariyer yolculuğuma, Nimak'da hibrit (tam zamanlı ve uzaktan) çalışma yapısıyla devam ediyorum.",
+    comment3: "Sanayi ve mühendislik sektöründeki iş süreçlerini bilişim altyapılarıyla destekleme üzerine pratik tecrübeler ediniyorum.",
+    vision: "Teknoloji, dijital dönüşüm ve yönetim bilişimi alanlarındaki vizyonumu paylaşmak ve geliştirmek temel hedefimdir.",
+    status: "Yeni projelere açık ✓",
+  },
   contact: { email: "kirkilabdullah33@gmail.com", phone: "0553 952 50 51", whatsapp: "https://wa.me/905539525051", location: "Ankara / Niğde" },
   socials: [
     { name: "LinkedIn", icon: "linkedin", href: "https://www.linkedin.com/in/abdullahkirkil" },
@@ -71,6 +95,14 @@ export async function getSiteData(): Promise<SiteData> {
         kicker: content?.aboutKicker || FALLBACK.about.kicker,
         title: content?.aboutTitle || FALLBACK.about.title,
         body: content?.aboutBody ?? FALLBACK.about.body,
+        name: content?.aboutName || FALLBACK.about.name,
+        school: content?.aboutSchool || FALLBACK.about.school,
+        loc: content?.aboutLoc || FALLBACK.about.loc,
+        comment1: content?.aboutComment1 || FALLBACK.about.comment1,
+        comment2: content?.aboutComment2 || FALLBACK.about.comment2,
+        comment3: content?.aboutComment3 || FALLBACK.about.comment3,
+        vision: content?.aboutVision || FALLBACK.about.vision,
+        status: content?.aboutStatus || FALLBACK.about.status,
       },
       contact: {
         email: content?.contactEmail || FALLBACK.contact.email,

@@ -4,14 +4,25 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 
 export async function saveAbout(formData: FormData) {
-  const aboutKicker = String(formData.get("aboutKicker") ?? "").trim() || null;
-  const aboutTitle = String(formData.get("aboutTitle") ?? "").trim() || null;
-  const aboutBody = String(formData.get("aboutBody") ?? "").trim() || null;
+  const str = (k: string) => String(formData.get(k) ?? "").trim() || null;
+  const data = {
+    aboutKicker: str("aboutKicker"),
+    aboutTitle: str("aboutTitle"),
+    aboutBody: str("aboutBody"),
+    aboutName: str("aboutName"),
+    aboutSchool: str("aboutSchool"),
+    aboutLoc: str("aboutLoc"),
+    aboutComment1: str("aboutComment1"),
+    aboutComment2: str("aboutComment2"),
+    aboutComment3: str("aboutComment3"),
+    aboutVision: str("aboutVision"),
+    aboutStatus: str("aboutStatus"),
+  };
 
   await prisma.siteContent.upsert({
     where: { id: "main" },
-    update: { aboutKicker, aboutTitle, aboutBody },
-    create: { id: "main", aboutKicker, aboutTitle, aboutBody },
+    update: data,
+    create: { id: "main", ...data },
   });
 
   revalidatePath("/admin/hakkimda");

@@ -390,7 +390,7 @@ export function Experience({ data }: { data?: SiteData } = {}) {
       </section>
 
       {/* Hakkımda */}
-      <About about={data?.about} />
+      <About about={data?.about} roles={data?.services.map((s) => ({ title: s.title, color: s.color }))} />
 
       {/* Hizmetler */}
       <Services

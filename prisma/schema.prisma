@@ -60,6 +60,14 @@ model SiteContent {
   aboutKicker    String?  // "Hakkımda"
   aboutTitle     String?  // "Öğrenci ruhu, profesyonel işçilik."
   aboutBody      String?  @db.Text // hakkımda yazısı (bio)
+  aboutName      String?  // kod editörü: ad
+  aboutSchool    String?  // kod editörü: okul
+  aboutLoc       String?  // kod editörü: konum
+  aboutComment1  String?  @db.Text // kod editörü: 1. yorum
+  aboutComment2  String?  @db.Text // kod editörü: 2. yorum
+  aboutComment3  String?  @db.Text // kod editörü: 3. yorum
+  aboutVision    String?  @db.Text // kod editörü: vizyonum() return
+  aboutStatus    String?  // kod editörü: durum
   contactEmail   String?
   contactPhone   String?
   contactWhatsapp String?

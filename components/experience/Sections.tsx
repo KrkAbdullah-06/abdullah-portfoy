@@ -131,17 +131,49 @@ function computeMeta(lines: Seg[][]): { meta: LineMeta[]; total: number } {
   return { meta, total: offset };
 }
 
-// Admin'deki "Hakkımda yazısı" (aboutBody) varsa, kod editörünün SONUNA bir
-// yorum satırı olarak eklenir → daktilo animasyonuna dahil olur, admin'den
-// düzenlenebilir. Boşsa kod olduğu gibi kalır.
-function buildCode(aboutBody?: string | null): { lines: Seg[][]; meta: LineMeta[]; total: number } {
-  const lines =
-    aboutBody && aboutBody.trim()
-      ? [...CODE_LINES, [], [{ cls: CM, text: "// " + aboutBody.trim() }]]
-      : CODE_LINES;
+// Kod editörünün TÜM metni admin'den gelir. Kod satırları bu değerlerden kurulur
+// → daktilo animasyonu ve söz dizimi renkleri aynı kalır.
+export type AboutContent = {
+  name: string;
+  school: string;
+  loc: string;
+  comment1: string;
+  comment2: string;
+  comment3: string;
+  vision: string;
+  status: string;
+  body?: string | null;
+  roleTitle: string; // "hizmetler" satırındaki ilk rol
+  roleColor: string;
+};
+
+function buildCode(c: AboutContent): { lines: Seg[][]; meta: LineMeta[]; total: number } {
+  const lines: Seg[][] = [
+    [{ cls: KW, text: "const" }, { text: " " }, { cls: PR, text: "abdullah" }, { text: " = {" }],
+    [{ text: "  " }, { cls: PR, text: "ad" }, { text: ": " }, { cls: ST, text: `"${c.name}",` }],
+    [{ text: "  " }, { cls: PR, text: "okul" }, { text: ": " }, { cls: ST, text: `"${c.school}",` }],
+    [{ text: "  " }, { cls: PR, text: "konum" }, { text: ": " }, { cls: ST, text: `"${c.loc}",` }],
+    [{ text: "  " }, { cls: PR, text: "hizmetler" }, { text: ": " }, { color: c.roleColor, text: `"${c.roleTitle}",` }],
+    [{ text: "};" }],
+    [],
+    [{ cls: CM, text: "// " + c.comment1 }],
+    [],
+    [{ cls: CM, text: "// " + c.comment2 }],
+    [{ cls: CM, text: "// " + c.comment3 }],
+    [],
+    [{ cls: CF, text: "function" }, { text: " " }, { cls: FN, text: "vizyonum" }, { text: "() {" }],
+    [{ text: "  " }, { cls: CF, text: "return" }, { text: " " }, { cls: ST, text: `"${c.vision}";` }],
+    [{ text: "}" }],
+    [],
+    [{ cls: KW, text: "const" }, { text: " " }, { cls: PR, text: "durum" }, { text: " = " }, { cls: ST, text: `"${c.status}";` }],
+    ...(c.body && c.body.trim() ? [[], [{ cls: CM, text: "// " + c.body.trim() }]] : []),
+  ];
   const { meta, total } = computeMeta(lines);
   return { lines, meta, total };
 }
+
+// Servisler DB'den gelmeden önce kullanılacak varsayılan roller (cycling).
+const DEFAULT_ROLES = ROLES.map((title, i) => ({ title, color: ROLE_COLORS[i % ROLE_COLORS.length] }));
 
 function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[]; budget: number; started: boolean; cursor: boolean }) {
   if (!started) return null;
@@ -171,9 +203,9 @@ function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[];
 
 // typed = şu ana kadar "yazılan" toplam karakter (0..TOTAL_CHARS). Kod bu
 // sayıya göre satır satır, karakter karakter ekrana gelir (gerçek daktilo).
-function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_CHARS }: { typed: number; lines?: Seg[][]; meta?: LineMeta[]; total?: number }) {
+function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_CHARS, roles = DEFAULT_ROLES }: { typed: number; lines?: Seg[][]; meta?: LineMeta[]; total?: number; roles?: { title: string; color: string }[] }) {
   const typingDone = typed >= total;
-  const [text, setText] = useState(ROLES[0]);
+  const [text, setText] = useState(roles[0]?.title ?? "");
   const [ri, setRi] = useState(0);
   const [del, setDel] = useState(false);
 
@@ -181,20 +213,20 @@ function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_
   // sürekli yazılıp silinen typewriter döngüsü başlar.
   useEffect(() => {
     if (!typingDone) return;
-    const full = ROLES[ri];
+    const full = roles[ri]?.title ?? "";
     const delay = !del && text === full ? 1500 : del ? 45 : 80;
     const t = setTimeout(() => {
       if (!del && text === full) {
         setDel(true);
       } else if (del && text === "") {
         setDel(false);
-        setRi((v) => (v + 1) % ROLES.length);
+        setRi((v) => (v + 1) % roles.length);
       } else {
         setText(full.slice(0, del ? text.length - 1 : text.length + 1));
       }
     }, delay);
     return () => clearTimeout(t);
-  }, [text, del, ri, typingDone]);
+  }, [text, del, ri, typingDone, roles]);
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/12 bg-[#0d0e11] shadow-[0_30px_70px_-30px_rgba(0,0,0,0.7)]">
@@ -226,9 +258,9 @@ function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_
                   <span className={PL}>{"  "}</span>
                   <span className={PR}>hizmetler</span>
                   <span className={PL}>{": "}</span>
-                  <span style={{ color: ROLE_COLORS[ri] }}>{'"'}{text}</span>
-                  <span aria-hidden className="ml-px inline-block h-[0.95em] w-[2px] translate-y-[2px] animate-pulse" style={{ backgroundColor: ROLE_COLORS[ri] }} />
-                  <span style={{ color: ROLE_COLORS[ri] }}>{'",'}</span>
+                  <span style={{ color: (roles[ri]?.color ?? "#c8ccd4") }}>{'"'}{text}</span>
+                  <span aria-hidden className="ml-px inline-block h-[0.95em] w-[2px] translate-y-[2px] animate-pulse" style={{ backgroundColor: (roles[ri]?.color ?? "#c8ccd4") }} />
+                  <span style={{ color: (roles[ri]?.color ?? "#c8ccd4") }}>{'",'}</span>
                 </span>
               </div>
             );
@@ -247,14 +279,56 @@ function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_
   );
 }
 
-export function About({ about }: { about?: { kicker: string; title: string; body: string | null } } = {}) {
+export function About({
+  about,
+  roles = DEFAULT_ROLES,
+}: {
+  about?: {
+    kicker: string;
+    title: string;
+    body: string | null;
+    name?: string;
+    school?: string;
+    loc?: string;
+    comment1?: string;
+    comment2?: string;
+    comment3?: string;
+    vision?: string;
+    status?: string;
+  };
+  roles?: { title: string; color: string }[];
+} = {}) {
   const [mobile, setMobile] = useState(false);
   const [inView, setInView] = useState(false);
   const [typed, setTyped] = useState(0); // "yazılmış" karakter sayısı (0..TOTAL_CHARS)
   const buildRef = useRef(0); // logo montaj ilerlemesi (0..1) — LogoSpin3D okur
   const secRef = useRef<HTMLElement>(null);
   // Admin'deki "Hakkımda yazısı" kod editörüne yorum olarak eklenir (düzenlenebilir).
-  const { lines: codeLines, meta: codeMeta, total: codeTotal } = useMemo(() => buildCode(about?.body), [about?.body]);
+  const { lines: codeLines, meta: codeMeta, total: codeTotal } = useMemo(
+    () =>
+      buildCode({
+        name: about?.name ?? "Abdullah Kırkıl",
+        school: about?.school ?? "Gazi Üniversitesi · MIS · 4. sınıf",
+        loc: about?.loc ?? "Ankara / Niğde",
+        comment1:
+          about?.comment1 ??
+          "Bilişim ve yönetim disiplinlerinin kesişim noktasında, teknolojiyi iş süreçlerine entegre etme vizyonuyla hareket ediyorum.",
+        comment2:
+          about?.comment2 ??
+          "Akademik eğitimimin yanı sıra, Nimak Makina Mühendislik çatısı altında stajyerlikle adım attığım kariyer yolculuğuma, Nimak'da hibrit (tam zamanlı ve uzaktan) çalışma yapısıyla devam ediyorum.",
+        comment3:
+          about?.comment3 ??
+          "Sanayi ve mühendislik sektöründeki iş süreçlerini bilişim altyapılarıyla destekleme üzerine pratik tecrübeler ediniyorum.",
+        vision:
+          about?.vision ??
+          "Teknoloji, dijital dönüşüm ve yönetim bilişimi alanlarındaki vizyonumu paylaşmak ve geliştirmek temel hedefimdir.",
+        status: about?.status ?? "Yeni projelere açık ✓",
+        body: about?.body ?? null,
+        roleTitle: roles[0]?.title ?? "3D & Mekanik Tasarım",
+        roleColor: roles[0]?.color ?? "#e0a94a",
+      }),
+    [about, roles],
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 1023px)");
@@ -333,7 +407,7 @@ export function About({ about }: { about?: { kicker: string; title: string; body
               min-w-0: uzun (sarmalanmamış) bir satır olsa bile grid sütunu kendi
               fr payının ötesine BÜYÜMEZ (eskiden yazarken paneller genişliyordu). */}
           <R delay={0.15} className="min-w-0">
-            <AboutCode typed={typed} lines={codeLines} meta={codeMeta} total={codeTotal} />
+            <AboutCode typed={typed} lines={codeLines} meta={codeMeta} total={codeTotal} roles={roles} />
           </R>
         </div>
 
