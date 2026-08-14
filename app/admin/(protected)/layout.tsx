@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { SignOut } from "./SignOut";
 import { AdminToaster } from "./AdminToaster";
 import { NavLinks } from "./NavLinks";
+import { AKMark } from "@/components/brand/AKMark";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-3">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2.5">
-              <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-indigo-400 to-teal-300 font-display text-sm font-bold text-black shadow-[0_8px_20px_-6px_rgba(99,102,241,0.7)]">AK</span>
+              <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-indigo-400 to-teal-300 text-black shadow-[0_8px_20px_-6px_rgba(99,102,241,0.7)]"><AKMark className="h-5 w-5" /></span>
               <span className="font-display text-sm font-bold tracking-tight">Yönetim</span>
             </div>
             <NavLinks />

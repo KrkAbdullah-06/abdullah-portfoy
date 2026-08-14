@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { AKMark } from "@/components/brand/AKMark";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -26,7 +27,7 @@ export default function AdminLogin() {
       <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(50% 40% at 30% 20%, rgba(99,102,241,0.22), transparent 60%), radial-gradient(45% 40% at 80% 90%, rgba(45,212,191,0.18), transparent 60%)" }} />
       <form onSubmit={submit} className="relative w-full max-w-sm rounded-2xl border border-white/10 bg-white/[0.04] p-8 shadow-[0_40px_100px_-40px_rgba(0,0,0,0.9)] backdrop-blur-xl">
         <div className="mb-6 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-400 to-teal-300 font-display text-sm font-bold text-black shadow-[0_10px_24px_-6px_rgba(99,102,241,0.7)]">AK</span>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-indigo-400 to-teal-300 text-black shadow-[0_10px_24px_-6px_rgba(99,102,241,0.7)]"><AKMark className="h-6 w-6" /></span>
           <div>
             <h1 className="text-lg font-bold leading-tight tracking-tight">Yönetim Girişi</h1>
             <p className="text-xs text-white/50">Abdullah Kırkıl · Portföy</p>

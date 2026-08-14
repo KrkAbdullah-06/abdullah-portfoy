@@ -1,86 +1,41 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
+import { createGearGeometry } from "@/components/three/geometries";
 
-// Hakkımda panelindeki 3D "AK" ligatür logosu — metalik ince kirişler. Yavaşça
-// döner. YENİ: `build` (0..1) ilerlemesiyle kirişler SIRAYLA büyüyerek oluşur
-// (kod yazıldıkça logo adım adım "montajlanır"). Şeffaf zemin.
-const STEEL = { color: "#e2e6ea", metalness: 0.85, roughness: 0.22, envMapIntensity: 1.6 };
+// Hakkımda panelindeki 3D logo — metalik dişli (mühendislik teması, site logosunun
+// dişli öğesiyle uyumlu). Yavaşça kendi ekseninde döner. `build` (0..1) ilerlemesiyle
+// dişli küçükten büyüyerek "montajlanır" (kod yazıldıkça oluşur). Şeffaf zemin.
+const STEEL = { color: "#e2e6ea", metalness: 0.88, roughness: 0.2, envMapIntensity: 1.7 };
 
-// Kirişler oluşma SIRASINA göre (AK ligatürü): dikey gövde → A eğik → A kol →
-// K üst → K alt → (en son) halka.
-const BEAMS: { a: [number, number]; b: [number, number]; w: number }[] = [
-  { a: [0, -3.1], b: [0, 3.1], w: 0.36 },
-  { a: [-2.3, -3.1], b: [0, 3.1], w: 0.32 },
-  { a: [-1.4, -0.5], b: [0, -0.5], w: 0.28 },
-  { a: [0, 0.1], b: [2.4, 3.0], w: 0.32 },
-  { a: [0, 0.1], b: [2.4, -3.1], w: 0.32 },
-];
-const PARTS = BEAMS.length + 1; // + halka
-const STEP = 1 / PARTS;
-
-function Logo({ build }: { build?: RefObject<number> }) {
+function Gear({ mobile = false, build }: { mobile?: boolean; build?: RefObject<number> }) {
   const g = useRef<THREE.Group>(null);
-  const beams = useRef<(THREE.Mesh | null)[]>([]);
-  const ring = useRef<THREE.Mesh>(null);
+  const geo = useMemo(() => createGearGeometry(mobile), [mobile]);
 
-  useFrame((state, d) => {
-    if (g.current) {
-      g.current.rotation.y += d * 0.55;
-      g.current.rotation.x = -0.12 + Math.sin(state.clock.elapsedTime * 0.5) * 0.12;
-    }
+  useFrame((_, d) => {
+    if (!g.current) return;
+    g.current.rotation.z += d * 0.5; // aksı kameraya bakan dişli, kendi ekseninde döner
     const b = build ? build.current ?? 1 : 1;
-    // kirişler sırayla uzunlukları boyunca büyür (çizilir gibi)
-    for (let i = 0; i < beams.current.length; i++) {
-      const m = beams.current[i];
-      if (!m) continue;
-      const t = Math.min(1, Math.max(0, (b - i * STEP) / STEP));
-      m.scale.x = t < 0.001 ? 0.0001 : t;
-      m.visible = t > 0.001;
-    }
-    if (ring.current) {
-      const t = Math.min(1, Math.max(0, (b - BEAMS.length * STEP) / STEP));
-      ring.current.scale.setScalar(t < 0.001 ? 0.0001 : t);
-      ring.current.visible = t > 0.001;
-    }
+    const s = 2.15 * Math.max(0.0001, b); // kod yazıldıkça büyüyerek oluşur
+    g.current.scale.setScalar(s);
+    g.current.visible = b > 0.001;
   });
 
   return (
-    <group ref={g} scale={0.68}>
-      {BEAMS.map((bm, i) => {
-        const len = Math.hypot(bm.b[0] - bm.a[0], bm.b[1] - bm.a[1]);
-        const angle = Math.atan2(bm.b[1] - bm.a[1], bm.b[0] - bm.a[0]);
-        return (
-          <mesh
-            key={i}
-            ref={(el) => {
-              beams.current[i] = el;
-            }}
-            position={[(bm.a[0] + bm.b[0]) / 2, (bm.a[1] + bm.b[1]) / 2, 0]}
-            rotation={[0, 0, angle]}
-            scale={[0.0001, 1, 1]}
-          >
-            <boxGeometry args={[len + bm.w * 0.5, bm.w, 0.34]} />
-            <meshStandardMaterial {...STEEL} />
-          </mesh>
-        );
-      })}
-      <mesh ref={ring} scale={[0.0001, 0.0001, 0.0001]}>
-        <torusGeometry args={[4.5, 0.09, 16, 96]} />
+    <group ref={g} rotation={[-0.32, 0.12, 0]}>
+      <mesh geometry={geo}>
         <meshStandardMaterial {...STEEL} />
       </mesh>
     </group>
   );
 }
 
-// Mobilde kareyi ~24fps'e sabitler (frameloop="demand" + invalidate) — Hakkımda
-// yazısı yazılırken (uzun bio, ~15-20sn) React re-render'ı ile AYNI ana iş
-// parçacığını paylaşıyordu, 60fps WebGL render'ı buna ek yük bindiriyordu
-// ("yazı yazılırken kaydıramıyorum" şikayetinin ikinci kaynağı). BackgroundStage'
-// teki çark için zaten kanıtlanmış aynı teknik. Masaüstü AYNEN 60fps kalır.
+// Mobilde kareyi ~18fps'e sabitler (frameloop="demand" + invalidate) — Hakkımda
+// yazısı yazılırken React re-render'ı ile ana iş parçacığını paylaşır, 60fps WebGL
+// buna ek yük bindirirdi. Masaüstü aynen 60fps kalır.
 function FpsCap({ fps }: { fps: number }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
@@ -101,14 +56,14 @@ function FpsCap({ fps }: { fps: number }) {
 }
 
 // active=false → frameloop durur (ekranda değilken GPU harcamaz).
-// build → kirişlerin oluşma ilerlemesi (0..1); verilmezse logo tam kurulu görünür.
+// build → dişlinin oluşma ilerlemesi (0..1); verilmezse tam kurulu görünür.
 export function LogoSpin3D({ active = true, mobile = false, build }: { active?: boolean; mobile?: boolean; build?: RefObject<number> }) {
   return (
     <Canvas frameloop={active ? (mobile ? "demand" : "always") : "never"} camera={{ position: [0, 0, 10.5], fov: 42 }} dpr={mobile ? 1 : [1, 1.75]} gl={{ antialias: !mobile, powerPreference: "low-power" }}>
       {active && mobile && <FpsCap fps={18} />}
       <ambientLight intensity={0.4} />
       <directionalLight position={[4, 6, 5]} intensity={1.2} />
-      <Logo build={build} />
+      <Gear mobile={mobile} build={build} />
       <Environment resolution={mobile ? 64 : 128}>
         <Lightformer intensity={2.2} position={[0, 4, 4]} scale={[10, 10, 1]} color="#ffffff" />
         <Lightformer intensity={1.3} position={[-6, 1, 3]} scale={[6, 10, 1]} color="#c9ced6" />

@@ -1,11 +1,17 @@
 <svg width="64" height="64" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100" height="100" rx="20" fill="#0a0b0d"/>
-  <g fill="none" stroke="#f4f5f6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-    <mask id="fk">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="20" fill="url(#bg)"/>
+  <g fill="none" stroke="#0a0b0d" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <mask id="afk">
       <rect width="100" height="100" fill="white"/>
       <circle cx="70" cy="70" r="23" fill="black"/>
     </mask>
-    <g mask="url(#fk)">
+    <g mask="url(#afk)">
       <circle cx="43" cy="41" r="26"/>
       <path d="M43 15 V67"/><path d="M17 41 H69"/>
       <ellipse cx="43" cy="41" rx="13" ry="26"/>
