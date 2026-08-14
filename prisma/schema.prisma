@@ -10,6 +10,15 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Admin işlem geçmişi (log kayıtları)
+model ActivityLog {
+  id        String   @id @default(cuid())
+  action    String   // "Proje eklendi", "Hizmet güncellendi"...
+  detail    String?  // ilgili öğe adı
+  kind      String   @default("info") // info | create | update | delete
+  createdAt DateTime @default(now())
+}
+
 // Admin girişi (NextAuth Credentials)
 model AdminUser {
   id           String   @id @default(cuid())

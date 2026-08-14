@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/activity";
 
 function refresh() {
   revalidatePath("/admin/iletisim");
@@ -20,6 +21,7 @@ export async function saveContact(formData: FormData) {
     update: { contactEmail, contactPhone, contactWhatsapp, contactLocation },
     create: { id: "main", contactEmail, contactPhone, contactWhatsapp, contactLocation },
   });
+  await logActivity("İletişim bilgileri güncellendi", null, "update");
   refresh();
 }
 
@@ -36,6 +38,7 @@ export async function createSocial(formData: FormData) {
   if (!d.name || !d.href) return;
   const last = await prisma.socialLink.findFirst({ orderBy: { order: "desc" } });
   await prisma.socialLink.create({ data: { ...d, order: (last?.order ?? 0) + 1 } });
+  await logActivity("Sosyal link eklendi", d.name, "create");
   refresh();
 }
 
@@ -44,12 +47,15 @@ export async function updateSocial(formData: FormData) {
   const d = readSocial(formData);
   if (!id || !d.name || !d.href) return;
   await prisma.socialLink.update({ where: { id }, data: d });
+  await logActivity("Sosyal link güncellendi", d.name, "update");
   refresh();
 }
 
 export async function deleteSocial(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
+  const s = await prisma.socialLink.findUnique({ where: { id } });
   await prisma.socialLink.delete({ where: { id } });
+  await logActivity("Sosyal link silindi", s?.name, "delete");
   refresh();
 }

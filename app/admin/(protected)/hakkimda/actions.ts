@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/activity";
 
 export async function saveAbout(formData: FormData) {
   const str = (k: string) => String(formData.get(k) ?? "").trim() || null;
@@ -25,6 +26,7 @@ export async function saveAbout(formData: FormData) {
     create: { id: "main", ...data },
   });
 
+  await logActivity("Hakkımda güncellendi", null, "update");
   revalidatePath("/admin/hakkimda");
   revalidatePath("/");
 }
