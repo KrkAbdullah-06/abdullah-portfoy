@@ -58,7 +58,7 @@ export function ProjectsAdmin({ projects }: { projects: P[] }) {
             setAdding((a) => !a);
             setEditing(null);
           }}
-          className="shrink-0 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-black transition hover:bg-white/90"
+          className="shrink-0 rounded-lg bg-gradient-to-r from-indigo-400 to-teal-300 px-4 py-2 text-sm font-semibold text-black shadow-[0_8px_22px_-8px_rgba(99,102,241,0.8)] transition hover:brightness-110 active:scale-95"
         >
           {adding ? "Kapat" : "+ Yeni Proje"}
         </button>
@@ -74,7 +74,7 @@ export function ProjectsAdmin({ projects }: { projects: P[] }) {
 
       <div className="mt-6 space-y-3">
         {projects.map((p) => (
-          <div key={p.id} className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+          <div key={p.id} className="rounded-2xl border border-white/10 bg-white/[0.02] p-5 transition-colors duration-200 hover:border-white/20 hover:bg-white/[0.035]">
             {editing === p.id ? (
               <form action={updateProject}>
                 <input type="hidden" name="id" value={p.id} />

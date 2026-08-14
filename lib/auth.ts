@@ -2,6 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { logActivity } from "@/lib/activity";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -21,6 +22,7 @@ export const authOptions: NextAuthOptions = {
         if (!user) return null;
         const ok = await bcrypt.compare(credentials.password, user.passwordHash);
         if (!ok) return null;
+        await logActivity("Panele giriş yapıldı", user.email, "login");
         return { id: user.id, email: user.email };
       },
     }),

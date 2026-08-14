@@ -18,6 +18,7 @@ const KIND: Record<string, { dot: string; label: string }> = {
   create: { dot: "#34d399", label: "Ekleme" },
   update: { dot: "#fbbf24", label: "Güncelleme" },
   delete: { dot: "#f87171", label: "Silme" },
+  login: { dot: "#60a5fa", label: "Giriş" },
   info: { dot: "#94a3b8", label: "Bilgi" },
 };
 
