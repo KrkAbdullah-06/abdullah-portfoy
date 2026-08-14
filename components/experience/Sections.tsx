@@ -175,25 +175,20 @@ function buildCode(c: AboutContent): { lines: Seg[][]; meta: LineMeta[]; total: 
 // Servisler DB'den gelmeden önce kullanılacak varsayılan roller (cycling).
 const DEFAULT_ROLES = ROLES.map((title, i) => ({ title, color: ROLE_COLORS[i % ROLE_COLORS.length] }));
 
-function CodeRow({ n, segs, budget, started, cursor, reserve }: { n: number; segs: Seg[]; budget: number; started: boolean; cursor: boolean; reserve?: boolean }) {
-  // reserve=true (mobil): satır YAZILMADAN da tam metin yerleştirilir, yazılmamış
-  // kısım görünmez (visibility:hidden) — yükseklik ve satır sarması baştan sabit
-  // kalır, kutu yazıldıkça BÜYÜMEZ (mobilde scroll takılmasının kaynağı buydu).
-  if (!started && !reserve) return null;
+function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[]; budget: number; started: boolean; cursor: boolean }) {
+  if (!started) return null;
   let remaining = budget;
   const nodes: ReactNode[] = [];
   for (let i = 0; i < segs.length; i++) {
     const seg = segs[i];
-    const take = Math.max(0, Math.min(remaining, seg.text.length));
-    const hidden = reserve ? seg.text.slice(take) : "";
-    if (take <= 0 && !hidden) continue;
+    if (remaining <= 0) break;
+    const take = Math.min(remaining, seg.text.length);
     nodes.push(
       <span key={i} className={seg.cls} style={seg.color ? { color: seg.color } : undefined}>
         {seg.text.slice(0, take)}
-        {hidden && <span style={{ visibility: "hidden" }}>{hidden}</span>}
       </span>
     );
-    remaining = Math.max(0, remaining - take);
+    remaining -= take;
   }
   return (
     <div className="flex gap-4">
@@ -208,7 +203,7 @@ function CodeRow({ n, segs, budget, started, cursor, reserve }: { n: number; seg
 
 // typed = şu ana kadar "yazılan" toplam karakter (0..TOTAL_CHARS). Kod bu
 // sayıya göre satır satır, karakter karakter ekrana gelir (gerçek daktilo).
-function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_CHARS, roles = DEFAULT_ROLES, reserve = false }: { typed: number; lines?: Seg[][]; meta?: LineMeta[]; total?: number; roles?: { title: string; color: string }[]; reserve?: boolean }) {
+function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_CHARS, roles = DEFAULT_ROLES }: { typed: number; lines?: Seg[][]; meta?: LineMeta[]; total?: number; roles?: { title: string; color: string }[] }) {
   const typingDone = typed >= total;
   const [text, setText] = useState(roles[0]?.title ?? "");
   const [ri, setRi] = useState(0);
@@ -270,7 +265,7 @@ function AboutCode({ typed, lines = CODE_LINES, meta = LINE_META, total = TOTAL_
               </div>
             );
           }
-          return <CodeRow key={i} n={i + 1} segs={segs} budget={budget} started={started} cursor={active && !typingDone} reserve={reserve} />;
+          return <CodeRow key={i} n={i + 1} segs={segs} budget={budget} started={started} cursor={active && !typingDone} />;
         })}
       </div>
 
@@ -412,7 +407,7 @@ export function About({
               min-w-0: uzun (sarmalanmamış) bir satır olsa bile grid sütunu kendi
               fr payının ötesine BÜYÜMEZ (eskiden yazarken paneller genişliyordu). */}
           <R delay={0.15} className="min-w-0">
-            <AboutCode typed={typed} lines={codeLines} meta={codeMeta} total={codeTotal} roles={roles} reserve={mobile} />
+            <AboutCode typed={typed} lines={codeLines} meta={codeMeta} total={codeTotal} roles={roles} />
           </R>
         </div>
 
