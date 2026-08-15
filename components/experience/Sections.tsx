@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LogoSpin3D } from "./LogoSpin3D";
 import { Icon } from "./Services";
 import { AKMark } from "@/components/brand/AKMark";
@@ -175,7 +175,12 @@ function buildCode(c: AboutContent): { lines: Seg[][]; meta: LineMeta[]; total: 
 // Servisler DB'den gelmeden önce kullanılacak varsayılan roller (cycling).
 const DEFAULT_ROLES = ROLES.map((title, i) => ({ title, color: ROLE_COLORS[i % ROLE_COLORS.length] }));
 
-function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[]; budget: number; started: boolean; cursor: boolean }) {
+// memo: tamamlanmış satırların prop'ları sabit kaldığından (budget satır bitince
+// m.real'e sabitlenir, cursor=false), yazım sırasında YALNIZCA o an yazılan satır
+// yeniden render olur — tamamlananlar atlanır. Mobilde yazarken ana iş parçacığı
+// yükü ciddi düşer (setTyped her tetiklendiğinde tüm satırları rebuild etmiyoruz).
+// Çıktı bire bir aynı; tamamen görünmez optimizasyon.
+const CodeRow = memo(function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[]; budget: number; started: boolean; cursor: boolean }) {
   if (!started) return null;
   let remaining = budget;
   const nodes: ReactNode[] = [];
@@ -199,7 +204,7 @@ function CodeRow({ n, segs, budget, started, cursor }: { n: number; segs: Seg[];
       </span>
     </div>
   );
-}
+});
 
 // typed = şu ana kadar "yazılan" toplam karakter (0..TOTAL_CHARS). Kod bu
 // sayıya göre satır satır, karakter karakter ekrana gelir (gerçek daktilo).
@@ -673,7 +678,7 @@ function CoverCard({ p, color, num, active, onSelect }: { p: Project; color: str
         if (ref.current) ref.current.style.transform = "";
       }}
       style={{ "--ac": color } as CSSProperties}
-      className={`group/card relative flex h-[440px] flex-col overflow-hidden rounded-[22px] border bg-white text-[#141416] transition-[transform,box-shadow] duration-200 ease-out will-change-transform sm:h-[504px] ${
+      className={`group/card relative flex h-[440px] flex-col overflow-hidden rounded-[22px] border bg-white text-[#141416] transition-[transform,box-shadow] duration-200 ease-out sm:h-[504px] sm:will-change-transform ${
         active
           ? "cursor-default border-white shadow-[0_40px_100px_-36px_var(--ac)]"
           : "cursor-pointer border-white/40 shadow-[0_26px_64px_-32px_rgba(0,0,0,0.7)]"
@@ -698,9 +703,9 @@ function CoverCard({ p, color, num, active, onSelect }: { p: Project; color: str
           <div className="flex h-11 w-11 items-center justify-center rounded-xl text-white shadow-[0_10px_24px_-6px_var(--ac)]" style={{ background: color }}>
             <Icon name={CAT_ICON[p.cat]} size={22} />
           </div>
-          <span className="rounded-full bg-black/30 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">{p.cat}</span>
+          <span className="rounded-full bg-black/30 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.18em] text-white/90 sm:backdrop-blur-sm">{p.cat}</span>
         </div>
-        <span className="absolute right-5 top-5 rounded-full bg-black/30 px-2.5 py-1 font-mono text-[10px] tabular-nums text-white/75 backdrop-blur-sm">{p.year}</span>
+        <span className="absolute right-5 top-5 rounded-full bg-black/30 px-2.5 py-1 font-mono text-[10px] tabular-nums text-white/75 sm:backdrop-blur-sm">{p.year}</span>
         {/* dev numara (sıra) */}
         <span aria-hidden className="pointer-events-none absolute -bottom-7 left-3 font-display text-[7rem] font-bold leading-none text-white/[0.12]">{num}</span>
       </div>
