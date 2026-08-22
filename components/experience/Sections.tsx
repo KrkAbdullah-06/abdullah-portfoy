@@ -1022,7 +1022,9 @@ export function Work({ items }: { items?: Project[] } = {}) {
         <R delay={0.1}>
           <div className="mt-12 border-b border-current/15 pb-10">
             <span className="mb-4 block font-mono text-[11px] uppercase tracking-[0.3em] opacity-50">Kategori</span>
-            <div className="flex flex-wrap gap-2.5">
+            {/* MOBİL: kategoriler tek satırda yatay kaydırılır (alt alta yığılmaz).
+                MASAÜSTÜ (sm:): eskisi gibi sarmalanır (flex-wrap) — davranış değişmez. */}
+            <div className="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:pb-0">
               {activeCats.map((c) => {
                 const on = cat === c;
                 return (
@@ -1030,7 +1032,7 @@ export function Work({ items }: { items?: Project[] } = {}) {
                     key={c}
                     type="button"
                     onClick={() => setCat(c)}
-                    className={`inline-flex items-center gap-2.5 rounded-full border-2 px-5 py-2.5 text-sm transition-all duration-300 active:translate-y-0 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${
+                    className={`inline-flex shrink-0 items-center gap-2.5 whitespace-nowrap rounded-full border-2 px-5 py-2.5 text-sm transition-all duration-300 active:translate-y-0 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current ${
                       on
                         ? "border-current bg-current/15 opacity-100 shadow-[0_6px_20px_rgba(0,0,0,0.10)]"
                         : "border-current/20 opacity-55 hover:-translate-y-0.5 hover:border-current/60 hover:bg-current/[0.08] hover:opacity-100"
