@@ -1022,8 +1022,11 @@ export function Work({ items }: { items?: Project[] } = {}) {
         <R delay={0.1}>
           <div className="mt-12 border-b border-current/15 pb-10">
             <span className="mb-4 block font-mono text-[11px] uppercase tracking-[0.3em] opacity-50">Kategori</span>
-            {/* MOBİL: kategoriler tek satırda yatay kaydırılır (alt alta yığılmaz).
-                MASAÜSTÜ (sm:): eskisi gibi sarmalanır (flex-wrap) — davranış değişmez. */}
+            {/* MOBİL: kategoriler tek satırda yatay kaydırılır (alt alta yığılmaz);
+                sağ kenarda soluk geçiş + ok, devamı olduğunu belli eder.
+                MASAÜSTÜ (sm:): contents ile sarmalayıcı yok olur, flex-wrap sarmalanır,
+                gösterge gizli — masaüstü davranışı hiç değişmez. */}
+            <div className="relative sm:contents">
             <div className="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:flex-wrap sm:overflow-visible sm:pb-0">
               {activeCats.map((c) => {
                 const on = cat === c;
@@ -1045,6 +1048,13 @@ export function Work({ items }: { items?: Project[] } = {}) {
                   </button>
                 );
               })}
+            </div>
+            {/* mobil kaydırma göstergesi — sağda soluk geçiş + yanıp sönen ok */}
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-[#f4f5f6] via-[#f4f5f6]/80 to-transparent pb-1 pl-10 sm:hidden">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0a0b0c] text-[#f4f5f6] shadow-lg">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 animate-pulse" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
+              </span>
+            </div>
             </div>
           </div>
         </R>
