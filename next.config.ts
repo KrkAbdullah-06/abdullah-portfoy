@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   // (Hostinger derleyip `next start` ile sunar). Bu yüzden `output: "export"`
   // KALDIRILDI — statik export sunucu tarafı özellikleri (admin paneli, veritabanı,
   // API route'ları) desteklemez.
+  // Hostinger derleme ortamı iş parçacığı sınırlı: varsayılan çok sayıda worker
+  // "os error 11" ile çöküyor → derleme tek worker ile yapılır (NİMAK'taki çözüm).
+  experimental: { cpus: 1 },
 };
 
 export default nextConfig;
